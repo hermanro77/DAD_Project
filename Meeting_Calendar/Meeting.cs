@@ -1,8 +1,10 @@
-﻿using System;
+﻿using CommonTypes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CommonTypes.CommonType;
 
 namespace Meeting_Calendar
 {
@@ -42,6 +44,11 @@ namespace Meeting_Calendar
             {
                 participants.add(client, dates);
             }
+        }
+
+        public void JoinAttendence()
+        {
+            throw new NotImplementedException();
         }
     }
     public class Meeting
