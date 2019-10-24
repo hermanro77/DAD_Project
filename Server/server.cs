@@ -13,10 +13,19 @@ namespace Server
     public class ServerServices : MarshalByRefObject, IServerServices
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
-        public void NewMeetingProposal(string uid)
+
+        // List of participants is optional, meaning if no exclusive invites it sends to everybody
+        public void NewMeetingProposal(string uid, List<string> participants = null)
         {
             Server.HostNewMeeting(uid);
             // throw new NotImplementedException();
+            foreach (KeyValuePair<string, IClientServices> client in clients)
+            {
+                if (participants == null || participants != null && participants.Contains(client.Key))
+                {
+                    client.Value.NewProposal(uid);
+                }
+            }
         }
 
         public void NewUser(string uname, int port)
