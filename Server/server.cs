@@ -15,30 +15,28 @@ namespace Server
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         public void NewMeetingProposal(string uid)
         {
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(IMeetingServices),
-                "remoteMeeting"+uid,
-                WellKnownObjectMode.Singleton);
+            Server.HostNewMeeting(uid);
             // throw new NotImplementedException();
         }
 
-        public void NewUser(string uname, IClientServices client)
+        public void NewUser(string uname, int port)
         {
             if (!clients.ContainsKey(uname))
             {
-                clients.Add(uname, client);
+                IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                "tcp://localhost:" + port + "/MyRemoteClient");
+                clients.Add(uname, cli);
             }
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
     }
-    class Program
+    class Server
     {
         static void Main(string[] args)
         {
             TcpChannel channel = new TcpChannel(8086);
 
             ChannelServices.RegisterChannel(channel, false);
-
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(IServerServices),
                 "MyRemoteServer",
@@ -46,6 +44,14 @@ namespace Server
 
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
+        }
+
+        public static void HostNewMeeting(string uid)
+        {
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(IMeetingServices),
+                "RemoteMeeting" + uid,
+                WellKnownObjectMode.Singleton);
         }
     }
 }

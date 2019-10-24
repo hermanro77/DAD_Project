@@ -18,7 +18,7 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewUser(string userName, IClientServices client);
+            void NewUser(string userName, int port_number);
             void NewMeetingProposal(string uid);
         }
     }

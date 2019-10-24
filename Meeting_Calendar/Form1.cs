@@ -42,7 +42,14 @@ namespace Meeting_Calendar
             typeof(IServerServices),
             "tcp://localhost:8086/MyRemoteServer");
 
-            myServer.NewUser();
+            myServer.NewUser(this.username, this.portnumber);
+        }
+
+        private void registerNewProposal()
+        {
+            myServer.NewMeetingProposal(uniqueMeetingID);
+            MeetingServices newMeeting = new MeetingServices(starter, topic, min_participants, List<Dates>);
+            RemotingServices.Marshal(newMeeting, "RemoteMeeting" + uniqueMeetingID, typeof(MeetingServices));
         }
     }
 }
