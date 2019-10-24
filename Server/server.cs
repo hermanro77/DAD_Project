@@ -12,11 +12,11 @@ namespace Server
 {
     public class ServerServices : MarshalByRefObject, IServerServices
     {
-        public void NewMeetingProposal()
+        public void NewMeetingProposal(string uid)
         {
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(IMeetingServices),
-                "SomeNewMeeting",
+                "remoteMeeting"+uid,
                 WellKnownObjectMode.Singleton);
             // throw new NotImplementedException();
         }
