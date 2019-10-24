@@ -1,4 +1,4 @@
-﻿namespace Meeting_Calendar
+﻿namespace MeetingCalendar
 {
     partial class Form1
     {

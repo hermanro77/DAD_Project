@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static CommonTypes.CommonType;
 
-namespace Meeting_Calendar
+namespace MeetingCalendar
 {
     public partial class Form1 : Form
     {
@@ -43,6 +43,20 @@ namespace Meeting_Calendar
             "tcp://localhost:8086/MyRemoteServer");
 
             myServer.NewUser();
+        }
+
+        internal void addMeetingToMeetingsList(String topic, int minParticipants, 
+            List<(DateTime, String)> dateLocOptions) {
+            
+            foreach ((DateTime, String) option in dateLocOptions) {
+                String[] itemArray = new String[3];
+                itemArray[0] = topic;
+                itemArray[1] = minParticipants.ToString();
+                itemArray[2] = option.Item1.ToString() + " at " + option.Item2.ToString();
+                ListViewItem item = new ListViewItem(itemArray);
+                this.meetingsListView.Items.Add(item); //Create a component in form of type ListView
+                                                        //with name meetingsListView
+            }
         }
     }
 }

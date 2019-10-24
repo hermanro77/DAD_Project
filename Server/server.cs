@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
-namespace Server
+namespace MeetingCalendar
 {
     public class ServerServices : MarshalByRefObject, IServerServices
     {
