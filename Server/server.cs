@@ -24,6 +24,10 @@ namespace Server
 
         public void NewUser(string uname, IClientServices client)
         {
+            if (!clients.ContainsKey(uname))
+            {
+                clients.Add(uname, client);
+            }
             throw new NotImplementedException();
         }
     }

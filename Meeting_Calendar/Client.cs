@@ -12,7 +12,6 @@ namespace Meeting_Calendar
     
     public class ClientService : MarshalByRefObject, IClientServices
     {
-        private List<IMeetingServices> myMeetings = new List<IMeetingServices>();
         private Form1 myForm;
         public ClientService(Form1 form1)
         {
