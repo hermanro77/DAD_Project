@@ -44,5 +44,15 @@ namespace Meeting_Calendar
 
             myServer.NewUser();
         }
+
+        private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
+        {
+
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
