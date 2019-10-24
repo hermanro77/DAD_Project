@@ -12,17 +12,17 @@ namespace Meeting_Calendar
         protected int capacity;
         private List<DateTime> bookedDates = new List<DateTime>();
 
-        private string Name {
+        public string Name {
             get { return name; }
             set { name = value; }
         }
 
-        private int Capacity {
+        public int Capacity {
             get { return capacity; }
             set { capacity = value; }
         }
 
-        private List<DateTime> BookedDates {
+        public List<DateTime> BookedDates {
             get { return bookedDates; }
         }
 
