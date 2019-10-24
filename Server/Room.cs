@@ -1,40 +1,48 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-//namespace Meeting_Calendar
-//{
-//    class Room
-//    {
-//        protected int capacity;
-//        protected String room_name;
-//        private List<String> booked_dates = new List<String>();
+namespace Meeting_Calendar
+{
+    class Room
+    {
+        protected string name;
+        protected int capacity;
+        private List<DateTime> bookedDates = new List<DateTime>();
 
-//        public Room(int cap, string name)
-//        {
-//            this.capacity = cap;
-//            this.room_name = name;
-//        }
+        private string Name {
+            get { return name; }
+            set { name = value; }
+        }
 
-//        public bool isAvailable(int date, int month, int year)
-//        {
-//            return booked_dates.Contains(
-//                this.convertDate(date, month, year));
-//        }
+        private int Capacity {
+            get { return capacity; }
+            set { capacity = value; }
+        }
 
-//        public void bookRoom(int date, int month, int year)
-//        {
-//            if (this.isAvailable(date, month, year))
-//            {
-//                booked_dates.add(this.convertDate(date, month, year));
-//            }
-//        }
+        private List<DateTime> BookedDates {
+            get { return bookedDates; }
+        }
 
-//        private String convertDate(int date, int month, int year)
-//        {
-//            return (date.length == 1 ? "0" + date : date) + "/" + (month.length == 1 ? "0" + month : month) + "/" + year;
-//        }
-//    }
-//}
+        public Room(string name, int capacity)
+        {
+            this.capacity = capacity;
+            this.name = name;
+        }
+
+        public void addBookedDate(DateTime date) {
+            if (!bookedDates.Contains(date))
+            {
+                bookedDates.Add(date);
+            }
+            else
+            {
+                throw new Exception("Date is already booked for room " + this.name);
+            }
+        }
+
+       
+    }
+}
