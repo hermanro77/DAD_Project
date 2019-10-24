@@ -12,6 +12,7 @@ namespace Server
 {
     public class ServerServices : MarshalByRefObject, IServerServices
     {
+        private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         public void NewMeetingProposal(string uid)
         {
             RemotingConfiguration.RegisterWellKnownServiceType(
@@ -21,7 +22,7 @@ namespace Server
             // throw new NotImplementedException();
         }
 
-        public void NewUser()
+        public void NewUser(string uname, IClientServices client)
         {
             throw new NotImplementedException();
         }
