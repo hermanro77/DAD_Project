@@ -45,6 +45,31 @@ namespace MeetingCalendar
             myServer.NewUser();
         }
 
+        private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
+        {
+
+        }
+
+        private void seeAvailableMeetings_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void joinSelectedMeetings_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void addDateAndLocation_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void sendMeetingProposal_Click(object sender, EventArgs e)
+        {
+
+        }
+
         internal void addMeetingToMeetingsList(String topic, int minParticipants, 
             List<(DateTime, String)> dateLocOptions) {
             
