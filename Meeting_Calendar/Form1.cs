@@ -50,7 +50,22 @@ namespace Meeting_Calendar
 
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void seeAvailableMeetings_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void joinSelectedMeetings_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void addDateAndLocation_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void sendMeetingProposal_Click(object sender, EventArgs e)
         {
 
         }
