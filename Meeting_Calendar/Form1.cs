@@ -79,7 +79,7 @@ namespace MeetingCalendar
                 itemArray[1] = minParticipants.ToString();
                 itemArray[2] = option.Item1.ToString() + " at " + option.Item2.ToString();
                 ListViewItem item = new ListViewItem(itemArray);
-                this.meetingsListView.Items.Add(item); //Create a component in form of type ListView
+                this.listView1.Items.Add(item); //Create a component in form of type ListView
                                                         //with name meetingsListView
             }
         }

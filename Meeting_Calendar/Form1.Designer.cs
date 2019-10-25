@@ -1,4 +1,5 @@
-﻿namespace MeetingCalendar
+﻿using System.Windows.Forms;
+namespace MeetingCalendar
 {
     partial class Form1
     {
