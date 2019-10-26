@@ -42,7 +42,7 @@ namespace MeetingCalendar
             typeof(IServerServices),
             "tcp://localhost:8086/MyRemoteServer");
 
-            myServer.NewUser();
+            //myServer.NewUser();
         }
 
         private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
