@@ -45,8 +45,8 @@ namespace MeetingCalendar
             // 
             // monthCalendar1
             // 
-            this.monthCalendar1.Location = new System.Drawing.Point(14, 170);
-            this.monthCalendar1.Margin = new System.Windows.Forms.Padding(7);
+            this.monthCalendar1.Location = new System.Drawing.Point(12, 136);
+            this.monthCalendar1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
             this.monthCalendar1.Name = "monthCalendar1";
             this.monthCalendar1.TabIndex = 1;
             this.monthCalendar1.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.monthCalendar1_DateChanged);
@@ -54,46 +54,46 @@ namespace MeetingCalendar
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(14, 58);
+            this.label2.Location = new System.Drawing.Point(12, 46);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(51, 20);
+            this.label2.Size = new System.Drawing.Size(47, 17);
             this.label2.TabIndex = 3;
             this.label2.Text = "Topic:";
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(71, 55);
+            this.textBox1.Location = new System.Drawing.Point(63, 44);
             this.textBox1.Margin = new System.Windows.Forms.Padding(2);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(185, 26);
+            this.textBox1.Size = new System.Drawing.Size(165, 22);
             this.textBox1.TabIndex = 4;
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(293, 58);
+            this.label3.Location = new System.Drawing.Point(260, 46);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(162, 20);
+            this.label3.Size = new System.Drawing.Size(144, 17);
             this.label3.TabIndex = 5;
             this.label3.Text = "Minimum participants:";
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(476, 55);
+            this.textBox2.Location = new System.Drawing.Point(423, 44);
             this.textBox2.Margin = new System.Windows.Forms.Padding(2);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(106, 26);
+            this.textBox2.Size = new System.Drawing.Size(95, 22);
             this.textBox2.TabIndex = 6;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(14, 143);
+            this.label4.Location = new System.Drawing.Point(12, 114);
             this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(329, 20);
+            this.label4.Size = new System.Drawing.Size(294, 17);
             this.label4.TabIndex = 7;
             this.label4.Text = "Add date and location options for participants";
             // 
@@ -102,9 +102,10 @@ namespace MeetingCalendar
             this.listView1.CheckBoxes = true;
             this.listView1.HideSelection = false;
             this.listView1.HoverSelection = true;
-            this.listView1.Location = new System.Drawing.Point(699, 58);
+            this.listView1.Location = new System.Drawing.Point(621, 46);
+            this.listView1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(377, 543);
+            this.listView1.Size = new System.Drawing.Size(336, 435);
             this.listView1.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listView1.TabIndex = 8;
             this.listView1.UseCompatibleStateImageBehavior = false;
@@ -112,9 +113,10 @@ namespace MeetingCalendar
             // button1
             // 
             this.button1.AccessibleName = "";
-            this.button1.Location = new System.Drawing.Point(699, 648);
+            this.button1.Location = new System.Drawing.Point(621, 518);
+            this.button1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(165, 66);
+            this.button1.Size = new System.Drawing.Size(147, 53);
             this.button1.TabIndex = 9;
             this.button1.Text = "See Available Meetings";
             this.button1.UseVisualStyleBackColor = true;
@@ -123,17 +125,18 @@ namespace MeetingCalendar
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(695, 9);
+            this.label5.Location = new System.Drawing.Point(618, 7);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(141, 20);
+            this.label5.Size = new System.Drawing.Size(126, 17);
             this.label5.TabIndex = 10;
             this.label5.Text = "Available Meetings";
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(922, 648);
+            this.button2.Location = new System.Drawing.Point(820, 518);
+            this.button2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(154, 66);
+            this.button2.Size = new System.Drawing.Size(137, 53);
             this.button2.TabIndex = 11;
             this.button2.Text = "Join Selected Meetings";
             this.button2.UseVisualStyleBackColor = true;
@@ -142,17 +145,20 @@ namespace MeetingCalendar
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(378, 170);
+            this.comboBox1.Location = new System.Drawing.Point(336, 136);
+            this.comboBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(204, 28);
+            this.comboBox1.Size = new System.Drawing.Size(182, 24);
             this.comboBox1.TabIndex = 12;
             this.comboBox1.Text = "Location";
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(378, 347);
+            this.button3.Location = new System.Drawing.Point(336, 278);
+            this.button3.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(204, 76);
+            this.button3.Size = new System.Drawing.Size(181, 61);
             this.button3.TabIndex = 13;
             this.button3.Text = "Add Date and Location";
             this.button3.UseVisualStyleBackColor = true;
@@ -161,60 +167,65 @@ namespace MeetingCalendar
             // listView2
             // 
             this.listView2.HideSelection = false;
-            this.listView2.Location = new System.Drawing.Point(18, 516);
+            this.listView2.Location = new System.Drawing.Point(16, 413);
+            this.listView2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(322, 198);
+            this.listView2.Size = new System.Drawing.Size(287, 159);
             this.listView2.TabIndex = 14;
             this.listView2.UseCompatibleStateImageBehavior = false;
             // 
             // comboBox2
             // 
             this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Location = new System.Drawing.Point(378, 516);
+            this.comboBox2.Location = new System.Drawing.Point(336, 413);
+            this.comboBox2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.comboBox2.Name = "comboBox2";
-            this.comboBox2.Size = new System.Drawing.Size(204, 28);
+            this.comboBox2.Size = new System.Drawing.Size(182, 24);
             this.comboBox2.TabIndex = 15;
             this.comboBox2.Text = "Invite People";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(18, 490);
+            this.label1.Location = new System.Drawing.Point(16, 392);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(67, 20);
+            this.label1.Size = new System.Drawing.Size(61, 17);
             this.label1.TabIndex = 16;
             this.label1.Text = "Preview ";
             // 
             // splitter1
             // 
             this.splitter1.Location = new System.Drawing.Point(0, 0);
+            this.splitter1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.splitter1.Name = "splitter1";
-            this.splitter1.Size = new System.Drawing.Size(3, 750);
+            this.splitter1.Size = new System.Drawing.Size(3, 600);
             this.splitter1.TabIndex = 17;
             this.splitter1.TabStop = false;
             // 
             // splitter2
             // 
             this.splitter2.Location = new System.Drawing.Point(3, 0);
+            this.splitter2.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.splitter2.Name = "splitter2";
-            this.splitter2.Size = new System.Drawing.Size(3, 750);
+            this.splitter2.Size = new System.Drawing.Size(3, 600);
             this.splitter2.TabIndex = 18;
             this.splitter2.TabStop = false;
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(14, 9);
+            this.label6.Location = new System.Drawing.Point(12, 7);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(118, 20);
+            this.label6.Size = new System.Drawing.Size(104, 17);
             this.label6.TabIndex = 19;
             this.label6.Text = "Create Meeting";
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(378, 651);
+            this.button4.Location = new System.Drawing.Point(336, 521);
+            this.button4.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(204, 63);
+            this.button4.Size = new System.Drawing.Size(181, 50);
             this.button4.TabIndex = 20;
             this.button4.Text = "Send Meeting Proposal";
             this.button4.UseVisualStyleBackColor = true;
@@ -222,9 +233,9 @@ namespace MeetingCalendar
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1252, 750);
+            this.ClientSize = new System.Drawing.Size(1113, 600);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.splitter2);
@@ -244,7 +255,6 @@ namespace MeetingCalendar
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.monthCalendar1);
-            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "Form1";
             this.Text = "Form1";
             this.ResumeLayout(false);

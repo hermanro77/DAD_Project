@@ -84,5 +84,10 @@ namespace MeetingCalendar
                                                         //with name meetingsListView
             }
         }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
