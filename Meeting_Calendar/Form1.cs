@@ -25,12 +25,6 @@ namespace MeetingCalendar
             InitializeComponent();
         }
 
-        private void TestButton_Click(object sender, EventArgs e)
-        {
-            // Dummy method
-            Console.WriteLine("Hello");
-        }
-
         private void registerNewClient()
         {
             //int port = Int32.Parse(Port_number.Text);
