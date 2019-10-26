@@ -19,9 +19,12 @@ namespace Meeting_Calendar
         }
 
         // Notification about a new meeting proposal, might wanna join
-        public void NewProposal()
+        public void NewProposal(string uid)
         {
-            throw new NotImplementedException();
+            IMeetingServices meetProp = (IMeetingServices)Activator.GetObject(typeof(IMeetingServices),
+                "tcp://localhost:[SERVER_PORT_HERE]/RemoteMeeting" + uid);
+
+            // throw new NotImplementedException();
         }
     }
     public class Client

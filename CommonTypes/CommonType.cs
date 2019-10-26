@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CommonTypes
 {
@@ -6,7 +7,7 @@ namespace CommonTypes
     {
         public interface IClientServices
         {
-            void NewProposal();
+            void NewProposal(string uid);
         }
 
         public interface IMeetingServices
@@ -18,8 +19,8 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewUser(string userName, IClientServices client);
-            void NewMeetingProposal(string uid);
+            void NewUser(string userName, int port_number);
+            void NewMeetingProposal(string uid, List<string> parts);
         }
     }
 }

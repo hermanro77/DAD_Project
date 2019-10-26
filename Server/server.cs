@@ -13,32 +13,39 @@ namespace Server
     public class ServerServices : MarshalByRefObject, IServerServices
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
-        public void NewMeetingProposal(string uid)
+
+        // List of participants is optional, meaning if no exclusive invites it sends to everybody
+        public void NewMeetingProposal(string uid, List<string> participants = null)
         {
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(IMeetingServices),
-                "remoteMeeting"+uid,
-                WellKnownObjectMode.Singleton);
+            Server.HostNewMeeting(uid);
             // throw new NotImplementedException();
+            foreach (KeyValuePair<string, IClientServices> client in clients)
+            {
+                if (participants == null || participants != null && participants.Contains(client.Key))
+                {
+                    client.Value.NewProposal(uid);
+                }
+            }
         }
 
-        public void NewUser(string uname, IClientServices client)
+        public void NewUser(string uname, int port)
         {
             if (!clients.ContainsKey(uname))
             {
-                clients.Add(uname, client);
+                IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                "tcp://localhost:" + port + "/MyRemoteClient");
+                clients.Add(uname, cli);
             }
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
         }
     }
-    class Program
+    class Server
     {
         static void Main(string[] args)
         {
             TcpChannel channel = new TcpChannel(8086);
 
             ChannelServices.RegisterChannel(channel, false);
-
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(IServerServices),
                 "MyRemoteServer",
@@ -46,6 +53,14 @@ namespace Server
 
             System.Console.WriteLine("<enter> para sair...");
             System.Console.ReadLine();
+        }
+
+        public static void HostNewMeeting(string uid)
+        {
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(IMeetingServices),
+                "RemoteMeeting" + uid,
+                WellKnownObjectMode.Singleton);
         }
     }
 }
