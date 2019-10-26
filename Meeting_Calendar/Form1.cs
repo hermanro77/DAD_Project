@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static CommonTypes.CommonType;
 
-namespace Meeting_Calendar
+namespace MeetingCalendar
 {
     public partial class Form1 : Form
     {
@@ -23,12 +23,6 @@ namespace Meeting_Calendar
         public Form1()
         {
             InitializeComponent();
-        }
-
-        private void TestButton_Click(object sender, EventArgs e)
-        {
-            // Dummy method
-            Console.WriteLine("Hello");
         }
 
         private void registerNewClient()
@@ -57,9 +51,38 @@ namespace Meeting_Calendar
 
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        private void seeAvailableMeetings_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void joinSelectedMeetings_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void addDateAndLocation_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void sendMeetingProposal_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        internal void addMeetingToMeetingsList(String topic, int minParticipants, 
+            List<(DateTime, String)> dateLocOptions) {
+            
+            foreach ((DateTime, String) option in dateLocOptions) {
+                String[] itemArray = new String[3];
+                itemArray[0] = topic;
+                itemArray[1] = minParticipants.ToString();
+                itemArray[2] = option.Item1.ToString() + " at " + option.Item2.ToString();
+                ListViewItem item = new ListViewItem(itemArray);
+                this.listView1.Items.Add(item); //Create a component in form of type ListView
+                                                        //with name meetingsListView
+            }
         }
     }
 }

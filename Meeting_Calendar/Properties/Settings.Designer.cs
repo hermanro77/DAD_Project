@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Meeting_Calendar.Properties
+namespace MeetingCalendar.Properties
 {
 
 

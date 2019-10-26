@@ -7,12 +7,14 @@ using System.Text;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
-namespace Meeting_Calendar
+namespace MeetingCalendar
 {
     
     public class ClientService : MarshalByRefObject, IClientServices
     {
         private Form1 myForm;
+        private delegate void InvokeDelegate(String topic, int minParticipants,
+            List<(DateTime, String)> dateLocOptions);
         public ClientService(Form1 form1)
         {
             this.myForm = form1;
@@ -25,6 +27,14 @@ namespace Meeting_Calendar
                 "tcp://localhost:[SERVER_PORT_HERE]/RemoteMeeting" + uid);
 
             // throw new NotImplementedException();
+        }
+
+        public void showAvailableMeetings(Meeting meeting) {
+            object[] meetingParams = new object[3];
+            meetingParams[0] = meeting.Topic;
+            meetingParams[1] = meeting.MinParticipants;
+            meetingParams[2] = meeting.DateLocOptions;
+            myForm.BeginInvoke(new InvokeDelegate(myForm.addMeetingToMeetingsList), meetingParams);
         }
     }
     public class Client

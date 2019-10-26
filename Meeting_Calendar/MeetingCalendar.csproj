@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5FA85F8C-6DA5-4513-9699-1158A196B719}</ProjectGuid>
+    <ProjectGuid>{3D3FC963-C3CA-4390-8D61-59F58A79A211}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Meeting_Calendar</RootNamespace>
     <AssemblyName>Meeting_Calendar</AssemblyName>

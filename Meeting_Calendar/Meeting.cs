@@ -6,20 +6,19 @@ using System.Text;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
-namespace Meeting_Calendar
+namespace MeetingCalendar
 {
     public class MeetingServices : MarshalByRefObject, IMeetingServices
     {
         private Client coordinator;
-        private String topic;
-        private int min_participants;
+        
 
 
-        public MeetingServices(Client owner, String topic, int min_parts, Dictionary options)
+        public MeetingServices(Client owner, String topic, int minParts, Dictionary options)
         {
             this.coordinator = owner;
             this.topic = topic;
-            this.min_participants = min_parts;
+            this.minParticipants = min_parts;
             this.options = options;
         }
 
@@ -30,24 +29,34 @@ namespace Meeting_Calendar
             // If no room available, cancel the meeting
         }
 
-        public void JoinAttendence(Client client, List dates)
-        {
-            if (!participants.ContaintsKey(client))
-            {
-                participants.add(client, dates);
-            }
-        }
+        //public void JoinAttendence(Client client, List dates)
+        //{
+        //    if (!participants.ContaintsKey(client))
+        //    {
+        //        participants.add(client, dates);
+        //    }
+        //}
 
         public void JoinAttendence()
         {
             throw new NotImplementedException();
         }
     }
-    public class Meeting
-    {
-        public Meeting()
-        {
+    public class Meeting {
+        
+        private String topic;
+        private int minParticipants;
+        private List<(DateTime, String)> dateLocOptions;
+        public Meeting(String topic, int minParticipants, DateTime date, String location) {
+            this.topic = topic;
+            this.minParticipants = minParticipants;
+            (DateTime, String) dateLocOption = (date, location);
+            this.dateLocOptions.Add(dateLocOption);
         }
+
+        public string Topic { get => topic; }
+        public int MinParticipants { get => minParticipants; }
+        public List<(DateTime, string)> DateLocOptions { get => dateLocOptions; }
 
         public void closeProposal()
         {
