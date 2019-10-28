@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationService", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeetingCalendar", "MeetingCalendar.csproj", "{3D3FC963-C3CA-4390-8D61-59F58A79A211}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "..\Client\Client.csproj", "{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{3D3FC963-C3CA-4390-8D61-59F58A79A211}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3D3FC963-C3CA-4390-8D61-59F58A79A211}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3D3FC963-C3CA-4390-8D61-59F58A79A211}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

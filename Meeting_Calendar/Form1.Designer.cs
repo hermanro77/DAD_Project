@@ -46,7 +46,7 @@ namespace MeetingCalendar
             // monthCalendar1
             // 
             this.monthCalendar1.Location = new System.Drawing.Point(12, 136);
-            this.monthCalendar1.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.monthCalendar1.Margin = new System.Windows.Forms.Padding(6);
             this.monthCalendar1.Name = "monthCalendar1";
             this.monthCalendar1.TabIndex = 1;
             this.monthCalendar1.DateChanged += new System.Windows.Forms.DateRangeEventHandler(this.monthCalendar1_DateChanged);
@@ -68,6 +68,7 @@ namespace MeetingCalendar
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(165, 22);
             this.textBox1.TabIndex = 4;
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // label3
             // 
