@@ -108,18 +108,9 @@ namespace MeetingCalendar
             return smallestRoom;
         }
 
-        // List of participants is optional, meaning if no exclusive invites it sends to everybody
-        public void NewMeetingProposal(string uid, List<string> participants = null)
+        public void NewMeetingProposal(MeetingServices proposal)
         {
-            Server.HostNewMeeting(uid);
-            // throw new NotImplementedException();
-            foreach (KeyValuePair<string, IClientServices> client in clients)
-            {
-                if (participants == null || participants != null && participants.Contains(client.Key))
-                {
-                    client.Value.NewProposal(uid);
-                }
-            }
+            meetings.Add(proposal);
         }
 
         public void NewUser(string uname, int port)
