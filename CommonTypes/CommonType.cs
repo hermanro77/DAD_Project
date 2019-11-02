@@ -12,15 +12,16 @@ namespace CommonTypes
 
         public interface IMeetingServices
         {
-            void JoinAttendence();
+            void JoinMeeting();
 
-            void CloseProposal(IClientServices client);
         }
 
         public interface IServerServices
         {
             void NewUser(string userName, int port_number);
-            void NewMeetingProposal(string uid, List<string> parts);
+            void NewMeetingProposal(IMeetingServices proposal);
+
+            void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
         }
     }
 }

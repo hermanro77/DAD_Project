@@ -10,59 +10,39 @@ namespace MeetingCalendar
 {
     public class MeetingServices : MarshalByRefObject, IMeetingServices
     {
-        private Client coordinator;
-        
-
-
-        public MeetingServices(Client owner, String topic, int minParts, Dictionary options)
-        {
-            this.coordinator = owner;
-            this.topic = topic;
-            this.minParticipants = min_parts;
-            this.options = options;
-        }
-
-        public void CloseProposal(IClientServices client)
-        {
-            // Do some scheduling
-            // Call Location to figure out which room
-            // If no room available, cancel the meeting
-        }
-
-        //public void JoinAttendence(Client client, List dates)
-        //{
-        //    if (!participants.ContaintsKey(client))
-        //    {
-        //        participants.add(client, dates);
-        //    }
-        //}
-
-        public void JoinAttendence()
-        {
-            throw new NotImplementedException();
-        }
-    }
-    public class Meeting {
-        
+        private String coordinatorUsername;
         private String topic;
         private int minParticipants;
-        private List<(DateTime, String)> dateLocOptions;
-        public Meeting(String topic, int minParticipants, DateTime date, String location) {
+        private List<(String, DateTime)> locDateOptions;
+        private List<String> participants = new List<String>();
+        private Boolean closed;
+
+        public MeetingServices(String username, String topic, int minParticipants, List<(string, DateTime)> slots, List<string> invitees)
+        {
+            this.coordinatorUsername = username;
             this.topic = topic;
             this.minParticipants = minParticipants;
-            (DateTime, String) dateLocOption = (date, location);
-            this.dateLocOptions.Add(dateLocOption);
+            this.locDateOptions = slots;
+            this.participants = invitees
+            this.closed = false;
         }
 
         public string Topic { get => topic; }
         public int MinParticipants { get => minParticipants; }
-        public List<(DateTime, string)> DateLocOptions { get => dateLocOptions; }
+        public List<(string, DateTime)> Slots { get => locDateOptions; }
+        
+        public Boolean Closed { set => closed = true;  }
 
-        public void closeProposal()
+        public void AddParticipant(string part) {
+            if (!this.closed)
+            {
+                this.participants.Add(part);
+            }
+        }
+
+        public void JoinMeeting()
         {
-            // Do some scheduling
-            // Call Location to figure out which room
-            // If no room available, cancel the meeting
+            return;
         }
     }
 }

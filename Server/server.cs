@@ -13,19 +13,33 @@ namespace MeetingCalendar
     public class ServerServices : MarshalByRefObject, IServerServices
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
+        private List<string> servers;
+        private List<IMeetingServices> meetings;
 
-        // List of participants is optional, meaning if no exclusive invites it sends to everybody
-        public void NewMeetingProposal(string uid, List<string> participants = null)
+        public void closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
-            Server.HostNewMeeting(uid);
-            // throw new NotImplementedException();
-            foreach (KeyValuePair<string, IClientServices> client in clients)
+            foreach (MeetingServices meeting in meetings)
             {
-                if (participants == null || participants != null && participants.Contains(client.Key))
+                if (meeting.Topic == meetingTopic)
                 {
-                    client.Value.NewProposal(uid);
+                    this.findBestDateAndLocation(meeting);
+                    meeting.Closed = true;
+                }
+                else
+                {
+
                 }
             }
+        }
+
+        private void findBestDateAndLocation(MeetingServices meeting)
+        {
+            return;
+        }
+
+        public void NewMeetingProposal(MeetingServices proposal)
+        {
+            meetings.Add(proposal);
         }
 
         public void NewUser(string uname, int port)

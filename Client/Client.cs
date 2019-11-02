@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MeetingCalendar;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -85,9 +86,19 @@ namespace Client
             // Not sure if works, temporary solution
             System.Threading.Thread.Sleep(delayTime);
         }
-        private void createMeeting(string meetingTopic, int minAttendees, int numSlots, int numInvites,
+        private void createMeeting(string meetingTopic, int minAttendees,
             List<(string, DateTime)> slots, List<string> invitees)
         {
+            try
+            {
+            MeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+                myServer.NewMeetingProposal(meetingProposal);
+
+            }
+            catch
+            {
+                //changeservver
+            }
             // Create new meeting
             // USE TRY-CATCH
         }
@@ -98,13 +109,13 @@ namespace Client
             // USE TRY-CATCH
         }
 
-        private void closeMeeting(string meetingTopic)
+        private void closeMeetingProposal(string meetingTopic)
         {
             if (myCreatedMeetings.Contains(meetingTopic))
             {
                 try
                 {
-                    myServer.closeMeeting(meetingTopic);
+                    myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     changeServer();
