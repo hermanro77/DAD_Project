@@ -24,10 +24,10 @@ namespace MeetingCalendar
             this.servers = servers;
         }
 
-        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
-            Boolean foundMeeting = false;
-            Boolean foundBestDateAndLocation = false;
+            bool foundMeeting = false;
+            bool foundBestDateAndLocation = false;
             foreach (MeetingServices meeting in this.meetings)
             {
 
@@ -61,7 +61,7 @@ namespace MeetingCalendar
 
         }
 
-        private Boolean findBestDateAndLocation(MeetingServices meeting)
+        private bool findBestDateAndLocation(MeetingServices meeting)
         {
             int maxNumParticipants = 0;
             (string, DateTime) bestLocAndDate = meeting.LocDateOptions[0];
