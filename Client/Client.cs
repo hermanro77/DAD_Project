@@ -60,8 +60,9 @@ namespace Client
         private List<string> ListInvitees(string[] command)
         {
             int m = Int32.Parse(command[4]);
+            int n = Int32.Parse(command[3]);
             List<string> invitees = new List<string>();
-            for (int j = 6; j < 6 + m; j++) {
+            for (int j = 5+n ; j < 5+n + m; j++) {
                 invitees.Add(command[j]);
             }
             return invitees;
