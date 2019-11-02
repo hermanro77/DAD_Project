@@ -108,7 +108,7 @@ namespace MeetingCalendar
             return smallestRoom;
         }
 
-        public void NewMeetingProposal(MeetingServices proposal)
+        public void NewMeetingProposal(IMeetingServices proposal)
         {
             meetings.Add(proposal);
         }
