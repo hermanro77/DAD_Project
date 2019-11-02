@@ -28,6 +28,7 @@ namespace MeetingCalendar
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
+            //One server solution
             foreach (MeetingServices meeting in this.meetings)
             {
 
@@ -38,7 +39,7 @@ namespace MeetingCalendar
                 }
                 
             }
-            //checks for meeting in other services
+            //checks for meeting in other services if meeting not in server (multiple servers solution)
             if (!foundMeeting)
             {
                 foreach (ServerServices server in servers)
@@ -65,7 +66,7 @@ namespace MeetingCalendar
         {
             int maxNumParticipants = 0;
             (string, DateTime) bestLocAndDate = meeting.LocDateOptions[0];
-            Room bestroom = null;
+            Room bestroom = new Room("default", 0);
             foreach ((string, DateTime) locdateoption in meeting.LocDateOptions)
             {
                 
@@ -84,28 +85,38 @@ namespace MeetingCalendar
                 {
                     maxNumParticipants = numParticipants;
                     bestLocAndDate = locdateoption;
-                    bestroom = this.getSmallestRoom(availableRooms); //set the best room to 
+                    bestroom = this.getSmallestRoom(availableRooms, numParticipants); //set the best room to 
                     //the smallest one of the available rooms in this best locDate
                 }
             }
-            
+            if (bestroom.Capacity < maxNumParticipants)
+            {
+                int numPeopleToExclude = maxNumParticipants - bestroom.Capacity;
+                //exclude the last people that entered the participants list
+                for (int i = meeting.Participants[bestLocAndDate].Count - 1; i >= meeting.Participants[bestLocAndDate].Count-numPeopleToExclude; i--)
+                {
+                    meeting.Participants[bestLocAndDate].RemoveAt(i);
+                }
+                
+            }
             bestroom.BookedDates.Add(bestLocAndDate.Item2); //books room for the date in bestLocAndDate
             meeting.Closed = true; 
-            this.meetings.Remove(meeting);
+            //this.meetings.Remove(meeting); Remove meeting after close?
             return true;
         }
 
-        private Room getSmallestRoom(List<Room> availableRooms)
+        private Room getSmallestRoom(List<Room> availableRooms, int numParticipants)
         {
-            Room smallestRoom = availableRooms[0];
-            foreach (Room room in availableRooms)
+            IEnumerable<Room> ascendingRoomsByCapacity = availableRooms.OrderBy(room => room.Capacity);
+            foreach (Room room in ascendingRoomsByCapacity)
             {
-                if (room.Capacity < smallestRoom.Capacity)
+                if (room.Capacity >= numParticipants)
                 {
-                    smallestRoom = room;
+                    return room;
                 }
             }
-            return smallestRoom;
+            //returns the room with the largest capacity if more participants than capacity
+            return ascendingRoomsByCapacity.Last(); 
         }
 
         public void NewMeetingProposal(IMeetingServices proposal)
