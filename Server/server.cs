@@ -81,6 +81,26 @@ namespace MeetingCalendar
             }
         }
 
+        public List<IMeetingServices> ListMeeting(string userName, bool requesterIsClient)
+        {
+            List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
+            foreach (MeetingServices meeting in meetings)
+            {
+                if (meeting.IsInvited(userName))
+                {
+                    availableMeetings.Add(meeting);
+                }
+            }
+            if (requesterIsClient)
+            {
+                foreach (IServerServices server in servers)
+                {
+                    server.ListMeetings(userName, false);
+                }
+            }
+            return availableMeetings;
+        }
+
         public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             throw new NotImplementedException();

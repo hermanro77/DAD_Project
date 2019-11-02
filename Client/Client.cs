@@ -37,7 +37,7 @@ namespace Client
                 switch (command[0])
                 {
                     case "list":
-                        this.listMeetings();
+                        this.ListMeetings();
                         break;
                     case "create":
                         this.createMeeting(command[1], Int32.Parse(command[2]),
@@ -123,9 +123,10 @@ namespace Client
             }
         }
 
-        private void listMeetings()
+        private void ListMeetings()
         {
-            myServer.getAvailableMeetings(userName);
+            List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, true);
+            Console.WriteLine(availableMeetings);
         }
 
         private void changeServer()

@@ -33,6 +33,10 @@ namespace MeetingCalendar
         
         public Boolean Closed { set => closed = true;  }
 
+        public Boolean IsInvited(string userName)
+        {
+            return participants.Contains(userName);
+        }
         public void AddParticipant(string part) {
             if (!this.closed)
             {

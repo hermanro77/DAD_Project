@@ -25,6 +25,8 @@ namespace CommonTypes
 
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
+
+            List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient);
         }
     }
 }
