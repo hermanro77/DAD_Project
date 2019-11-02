@@ -21,7 +21,7 @@ namespace CommonTypes
             void NewUser(string userName, int port_number);
             void NewMeetingProposal(IMeetingServices proposal);
 
-            void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
         }
     }
 }

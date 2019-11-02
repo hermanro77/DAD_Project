@@ -13,8 +13,9 @@ namespace MeetingCalendar
         private String coordinatorUsername;
         private String topic;
         private int minParticipants;
-        private List<(String, DateTime)> locDateOptions;
-        private List<String> participants = new List<String>();
+        private List<String> invitees;
+        private List<(string, DateTime)> locDateOptions;
+        private Dictionary<(string, DateTime), List<string>> participants = new Dictionary<(string, DateTime), List<string>>();
         private Boolean closed;
 
         public MeetingServices(String username, String topic, int minParticipants, List<(string, DateTime)> slots, List<string> invitees)
@@ -23,20 +24,22 @@ namespace MeetingCalendar
             this.topic = topic;
             this.minParticipants = minParticipants;
             this.locDateOptions = slots;
-            this.participants = invitees
+            this.invitees = invitees;
             this.closed = false;
         }
 
         public string Topic { get => topic; }
         public int MinParticipants { get => minParticipants; }
+        public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
-        
         public Boolean Closed { set => closed = true;  }
 
-        public void AddParticipant(string part) {
+        public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
+
+        public void AddParticipantToSlot((string, DateTime) slot, string part) {
             if (!this.closed)
             {
-                this.participants.Add(part);
+                this.participants[slot].Add(part);
             }
         }
 
