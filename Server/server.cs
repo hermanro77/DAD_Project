@@ -22,6 +22,7 @@ namespace MeetingCalendar
             {
                 if (meeting.Topic == meetingTopic)
                 {
+                    this.findBestDateAndLocation(meeting);
                     meeting.Closed = true;
                 }
                 else
@@ -29,6 +30,11 @@ namespace MeetingCalendar
 
                 }
             }
+        }
+
+        private void findBestDateAndLocation(MeetingServices meeting)
+        {
+            return;
         }
 
         // List of participants is optional, meaning if no exclusive invites it sends to everybody
