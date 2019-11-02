@@ -81,7 +81,12 @@ namespace MeetingCalendar
             }
         }
 
-        public List<IMeetingServices> ListMeeting(string userName, bool requesterIsClient)
+        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
             foreach (MeetingServices meeting in meetings)
@@ -99,11 +104,6 @@ namespace MeetingCalendar
                 }
             }
             return availableMeetings;
-        }
-
-        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
-        {
-            throw new NotImplementedException();
         }
     }
     class Server

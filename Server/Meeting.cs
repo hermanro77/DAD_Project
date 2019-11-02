@@ -33,7 +33,7 @@ namespace MeetingCalendar
         
         public Boolean Closed { set => closed = true;  }
 
-        public Boolean IsInvited(string userName)
+        public bool IsInvited(string userName)
         {
             return participants.Contains(userName);
         }
