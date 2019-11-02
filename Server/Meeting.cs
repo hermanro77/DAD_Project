@@ -13,24 +13,23 @@ namespace MeetingCalendar
         private String coordinatorUsername;
         private String topic;
         private int minParticipants;
-        private List<(DateTime, String)> dateLocOptions;
+        private List<(String, DateTime)> locDateOptions;
         private List<String> participants = new List<String>();
         private Boolean closed;
 
-        public MeetingServices(String username, String topic, int minParticipants, DateTime date,
-            String location)
+        public MeetingServices(String username, String topic, int minParticipants, List<(string, DateTime)> slots, List<string> invitees)
         {
             this.coordinatorUsername = username;
             this.topic = topic;
             this.minParticipants = minParticipants;
-            (DateTime, String) dateLocOption = (date, location);
-            this.dateLocOptions.Add(dateLocOption);
+            this.locDateOptions = slots;
+            this.participants = invitees
             this.closed = false;
         }
 
         public string Topic { get => topic; }
         public int MinParticipants { get => minParticipants; }
-        public List<(DateTime, string)> DateLocOptions { get => dateLocOptions; }
+        public List<(string, DateTime)> Slots { get => locDateOptions; }
         
         public Boolean Closed { set => closed = true;  }
 

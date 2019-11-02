@@ -45,10 +45,19 @@ namespace Client
             // Not sure if works, temporary solution
             System.Threading.Thread.Sleep(delayTime);
         }
-        private void createMeeting(string meetingTopic, int minAttendees, int numSlots, int numInvites,
+        private void createMeeting(string meetingTopic, int minAttendees,
             List<(string, DateTime)> slots, List<string> invitees)
         {
-            Meeting 
+            try
+            {
+            MeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+                myServer.NewMeetingProposal(meetingProposal);
+
+            }
+            catch
+            {
+                //changeservver
+            }
             // Create new meeting
             // USE TRY-CATCH
         }

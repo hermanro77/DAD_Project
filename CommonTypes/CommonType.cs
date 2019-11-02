@@ -19,7 +19,7 @@ namespace CommonTypes
         public interface IServerServices
         {
             void NewUser(string userName, int port_number);
-            void NewMeetingProposal(string uid, List<string> parts);
+            void NewMeetingProposal(IMeetingServices proposal);
 
             void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
         }
