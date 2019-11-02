@@ -23,7 +23,7 @@ namespace MeetingCalendar
             this.topic = topic;
             this.minParticipants = minParticipants;
             this.locDateOptions = slots;
-            this.participants = invitees
+            this.participants = invitees;
             this.closed = false;
         }
 
