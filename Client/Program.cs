@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProcessCreationService
+namespace Client
 {
-    class ProcessService
+    class Client
     {
         static void Main(string[] args)
         {
