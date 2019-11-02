@@ -15,6 +15,7 @@ namespace MeetingCalendar
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> servers;
+        private List<string> serverURLs;
         private List<IMeetingServices> meetings;
 
         public void closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -30,6 +31,29 @@ namespace MeetingCalendar
                 {
 
                 }
+            }
+        }
+
+        public ServerServices(List<string> serverURLs, string serverID)
+        {
+            this.serverURLs = serverURLs;
+            this.SetupServers();
+            TcpChannel channel = new TcpChannel();
+
+            ChannelServices.RegisterChannel(channel, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ServerServices),
+                "MyRemoteServer",
+                WellKnownObjectMode.Singleton);
+        }
+
+        private void SetupServers()
+        {
+            foreach (string url in serverURLs)
+            {
+                IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                url);
+                servers.Add(server);
             }
         }
 
@@ -104,30 +128,6 @@ namespace MeetingCalendar
                 }
             }
             return availableMeetings;
-        }
-    }
-    class Server
-    {
-        static void Main(string[] args)
-        {
-            TcpChannel channel = new TcpChannel(8086);
-
-            ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(IServerServices),
-                "MyRemoteServer",
-                WellKnownObjectMode.Singleton);
-
-            System.Console.WriteLine("<enter> para sair...");
-            System.Console.ReadLine();
-        }
-
-        public static void HostNewMeeting(string uid)
-        {
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(IMeetingServices),
-                "RemoteMeeting" + uid,
-                WellKnownObjectMode.Singleton);
         }
     }
 }

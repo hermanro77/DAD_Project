@@ -11,16 +11,12 @@ using static CommonTypes.CommonType;
 
 namespace Client
 {
-    class Client
+    class Client : MarshalByRefObject, IClientServices
     {
         
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
         IServerServices myServer;
-        static void Main(string[] args)
-        {
-        
-        }
 
         public Client(string userName, string clientURL, string serverURL, string scriptFileName)
         {
@@ -115,7 +111,7 @@ namespace Client
             {
                 try
                 {
-                    myServer.closeMeetingProposal(meetingTopic, this.userName);
+                    myServer.CloseMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     changeServer();
@@ -142,6 +138,11 @@ namespace Client
                 typeof(IServerServices),
                 sURL);
             myServer.NewUser(this.userName, cURL);
+        }
+
+        public void NewProposal(string uid)
+        {
+            throw new NotImplementedException();
         }
     }
 }
