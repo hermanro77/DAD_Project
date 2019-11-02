@@ -57,13 +57,13 @@ namespace Client
             // USE TRY-CATCH
         }
 
-        private void closeMeeting(string meetingTopic)
+        private void closeMeetingProposal(string meetingTopic)
         {
             if (myCreatedMeetings.Contains(meetingTopic))
             {
                 try
                 {
-                    myServer.closeMeeting(meetingTopic);
+                    myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     changeServer();
