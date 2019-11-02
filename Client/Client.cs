@@ -41,13 +41,13 @@ namespace Client
                         break;
                     case "create":
                         this.createMeeting(command[1], Int32.Parse(command[2]),
-                            this.ParseDateLoc(command), this.ListInvitees(command));
+                            this.ParseDateLoc(command, Int32.Parse(command[3])), this.ListInvitees(command));
                         break;
                     case "join":
-                        this.joinMeeting(command[1]);
+                        this.JoinMeeting(command[1], this.ParseDateLoc(command, Int32.Parse(command[2])));
                         break;
                     case "close":
-                        this.closeMeeting(command[1]);
+                        this.closeMeetingProposal(command[1]);
                         break;
                     case "wait":
                         this.wait(Int32.Parse(command[1]));
@@ -69,10 +69,9 @@ namespace Client
             return invitees;
         }
 
-        private List<(string, DateTime)> ParseDateLoc(string[] entries)
+        private List<(string, DateTime)> ParseDateLoc(string[] entries, int n)
         {
             List<(string, DateTime)> slots = new List<(string, DateTime)>();
-            int n = Int32.Parse(entries[3]);
             for (int i = 5; i < 5 + n; i++)
             {
                 string[] dateLoc = entries[i].Replace(@"(", "").Replace(@")", "").Split(';');
@@ -103,8 +102,9 @@ namespace Client
             // USE TRY-CATCH
         }
 
-        private void joinMeeting(string meetingTopic)
+        private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
         {
+            myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             // Joins an existing meeting, using meetingTopic as unique ID
             // USE TRY-CATCH
         }

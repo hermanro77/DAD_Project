@@ -40,7 +40,7 @@ namespace MeetingCalendar
             }
         }
 
-        public void JoinMeeting()
+        public void JoinMeeting(string userName)
         {
             return;
         }

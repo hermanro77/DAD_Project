@@ -6,6 +6,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading.Tasks;
+using CommonTypes;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -13,7 +14,7 @@ namespace MeetingCalendar
     public class ServerServices : MarshalByRefObject, IServerServices
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
-        private List<string> servers;
+        private List<IServerServices> servers;
         private List<IMeetingServices> meetings;
 
         public void closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -51,6 +52,38 @@ namespace MeetingCalendar
                 clients.Add(uname, cli);
             }
             // throw new NotImplementedException();
+        }
+
+        public void NewMeetingProposal(IMeetingServices proposal)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void JoinMeeting(string meetingTopic, string userName,
+            bool requesterIsClient, List<(string, DateTime)> dateLoc)
+        { 
+            bool joined = false;
+            foreach (MeetingServices meeting in meetings)
+            {
+                if (meeting.Topic == meetingTopic)
+                {
+                    meeting.JoinMeeting(userName);
+                    joined = true;
+                    break;
+                }
+            }
+            if (requesterIsClient && !joined)
+            {
+                foreach (ServerServices meetingServer in servers)
+                {
+                    meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
+                }
+            }
+        }
+
+        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
+        {
+            throw new NotImplementedException();
         }
     }
     class Server

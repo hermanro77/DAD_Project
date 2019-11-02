@@ -12,7 +12,7 @@ namespace CommonTypes
 
         public interface IMeetingServices
         {
-            void JoinMeeting();
+            void JoinMeeting(string userName);
 
         }
 
@@ -21,7 +21,10 @@ namespace CommonTypes
             void NewUser(string userName, int port_number);
             void NewMeetingProposal(IMeetingServices proposal);
 
-            void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            void CloseMeetingProposal(string meetingTopic, string coordinatorUsername);
+
+            void JoinMeeting(string meetingTopic, string userName, 
+                bool requesterIsClient, List<(string, DateTime)> dateLoc);
         }
     }
 }
