@@ -1,4 +1,4 @@
-﻿using MeetingCalendar;
+﻿
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -47,7 +47,7 @@ namespace Client
                         this.joinMeeting(command[1]);
                         break;
                     case "close":
-                        this.closeMeeting(command[1]);
+                        this.closeMeetingProposal(command[1]);
                         break;
                     case "wait":
                         this.wait(Int32.Parse(command[1]));
@@ -91,7 +91,7 @@ namespace Client
         {
             try
             {
-            MeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+            IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 myServer.NewMeetingProposal(meetingProposal);
 
             }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Server;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
@@ -15,6 +16,7 @@ namespace MeetingCalendar
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<string> servers;
         private List<IMeetingServices> meetings;
+        private Location location = new Location();
 
         public void closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
@@ -37,7 +39,8 @@ namespace MeetingCalendar
             return;
         }
 
-        public void NewMeetingProposal(MeetingServices proposal)
+
+        public void NewMeetingProposal(IMeetingServices proposal)
         {
             meetings.Add(proposal);
         }
@@ -51,6 +54,11 @@ namespace MeetingCalendar
                 clients.Add(uname, cli);
             }
             // throw new NotImplementedException();
+        }
+        public void AddRoom(string location, int capacity, string roomName)
+        {
+            Room newRoom = new Room(roomName, capacity);
+            this.location.addRoom(newRoom, location);
         }
     }
     class Server

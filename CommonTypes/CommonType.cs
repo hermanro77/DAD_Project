@@ -22,6 +22,7 @@ namespace CommonTypes
             void NewMeetingProposal(IMeetingServices proposal);
 
             void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            void AddRoom(string location, int capacity, string roomName);
         }
     }
 }

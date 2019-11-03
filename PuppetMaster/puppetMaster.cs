@@ -26,7 +26,11 @@ namespace PuppetMaster
 
         public void addRoom(string location, int capacity, string roomName)
         {
+             foreach (IServerServices server in servers)
+            {
+                server.AddRoom(location, capacity, roomName);
 
+            }
         }
         
 
