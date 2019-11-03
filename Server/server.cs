@@ -20,12 +20,21 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings;
         private Location location = new Location();
 
-        public ServerServices(Dictionary<string, IClientServices> clients, List<IServerServices> servers)
+        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
+        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
         {
-            this.clients = clients;
-            this.servers = servers;
-        }
+            this.serverURLs = serverURLs;
+            this.SetupServers();
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
 
+            ChannelServices.RegisterChannel(channel, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ServerServices),
+                serverID,
+                WellKnownObjectMode.Singleton);
+        }
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
@@ -107,22 +116,6 @@ namespace MeetingCalendar
             return true;
         }
 
-        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
-        {
-            this.serverURLs = serverURLs;
-            this.SetupServers();
-            string[] partlyURL = serverURL.Split(':');
-            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
-
-            ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ServerServices),
-                serverID,
-                WellKnownObjectMode.Singleton);
-        }
-
         private void SetupServers()
         {
             foreach (string url in serverURLs)
@@ -158,7 +151,7 @@ namespace MeetingCalendar
             meetings.Add(proposal);
         }
 
-        public void NewUser(string uname, string userURL)
+        public void NewClient(string uname, string userURL)
         {
             if (!clients.ContainsKey(uname))
             {
@@ -169,10 +162,6 @@ namespace MeetingCalendar
             // throw new NotImplementedException();
         }
 
-        public void NewMeetingProposal(IMeetingServices proposal)
-        {
-            throw new NotImplementedException();
-        }
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)

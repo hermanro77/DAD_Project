@@ -36,7 +36,7 @@ namespace MeetingCalendar
         
         public bool IsInvited(string userName)
         {
-            return participants.Contains(userName);
+            return invitees.Contains(userName);
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
