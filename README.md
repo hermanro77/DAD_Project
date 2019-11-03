@@ -5,3 +5,5 @@ Meeting rooms
 2) Does the same apply for client_URL?
 3) How does the script look like?
 4) How does servers know about each other?
+5) When a client ask for something from the server, can the method just return the requested information, or does the servar has to
+call the client with its interface methods?
