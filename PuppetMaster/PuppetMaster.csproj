@@ -81,19 +81,19 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Client\Client.csproj">
+    <ProjectReference Include="..\Client\Client.csproj">
       <Project>{dcb9d95d-1081-4a26-a56b-e2f47055fc8f}</Project>
       <Name>Client</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CommonTypes\CommonTypes.csproj">
+    <ProjectReference Include="..\CommonTypes\CommonTypes.csproj">
       <Project>{9a2daab9-13ba-4655-a337-d16c12aa86a8}</Project>
       <Name>CommonTypes</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ProcessCreationService\ProcessCreationService.csproj">
+    <ProjectReference Include="..\ProcessCreationService\ProcessCreationService.csproj">
       <Project>{8a399527-3f75-4813-af55-3aa290e42fa0}</Project>
       <Name>ProcessCreationService</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Server\Server.csproj">
+    <ProjectReference Include="..\Server\Server.csproj">
       <Project>{c242e1f4-0d23-45ff-99f4-7f856d7652ed}</Project>
       <Name>Server</Name>
     </ProjectReference>
