@@ -6,6 +6,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
@@ -17,6 +18,8 @@ namespace ProcessCreationService
             List<string> otherServerURLs)
         {
             ServerServices server = new ServerServices(serverID, URL, otherServerURLs);
+            Thread thread = new Thread(new ThreadStart(server.initializeServer()));
+            thread.Start();
         }
 
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
