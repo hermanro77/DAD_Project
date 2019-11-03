@@ -34,16 +34,19 @@ namespace MeetingCalendar
             }
         }
 
-        public ServerServices(List<string> serverURLs, string serverID)
+        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
+        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
         {
             this.serverURLs = serverURLs;
             this.SetupServers();
-            TcpChannel channel = new TcpChannel();
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
 
             ChannelServices.RegisterChannel(channel, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ServerServices),
-                "MyRemoteServer",
+                serverID,
                 WellKnownObjectMode.Singleton);
         }
 
@@ -57,6 +60,12 @@ namespace MeetingCalendar
             }
         }
 
+        public void AddNewServer(string serverURL)
+        {
+            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
+            servers.Add(server);
+        }
+
         private void findBestDateAndLocation(MeetingServices meeting)
         {
             return;
@@ -67,12 +76,12 @@ namespace MeetingCalendar
             meetings.Add(proposal);
         }
 
-        public void NewUser(string uname, int port)
+        public void NewUser(string uname, string userURL)
         {
             if (!clients.ContainsKey(uname))
             {
                 IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                "tcp://localhost:" + port + "/MyRemoteClient");
+                userURL);
                 clients.Add(uname, cli);
             }
             // throw new NotImplementedException();
@@ -86,17 +95,15 @@ namespace MeetingCalendar
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
         { 
-            bool joined = false;
             foreach (MeetingServices meeting in meetings)
             {
                 if (meeting.Topic == meetingTopic)
                 {
                     meeting.JoinMeeting(userName);
-                    joined = true;
                     break;
                 }
             }
-            if (requesterIsClient && !joined)
+            if (requesterIsClient)
             {
                 foreach (ServerServices meetingServer in servers)
                 {
@@ -124,7 +131,11 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in servers)
                 {
-                    server.ListMeetings(userName, false);
+                    foreach(MeetingServices meets in server.ListMeetings(userName, false))
+                    {
+                        availableMeetings.Add(meets);
+                    }
+
                 }
             }
             return availableMeetings;

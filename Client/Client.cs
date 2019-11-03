@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
@@ -17,17 +18,27 @@ namespace Client
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
         IServerServices myServer;
+        TcpChannel tcp;
 
         public Client(string userName, string clientURL, string serverURL, string scriptFileName)
         {
             this.userName = userName;
-            this.setUp(clientURL, serverURL);
+            string[] partlyURL = clientURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            tcp = new TcpChannel(Int32.Parse(endURL[0]));
+            this.SetUpServer(clientURL, serverURL);
+            ChannelServices.RegisterChannel(tcp, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(Client),
+                "userName",
+                WellKnownObjectMode.Singleton);
+            this.RunScript(scriptFileName);
         }
 
-        private void runScript()
+        private void RunScript(string scriptFileName)
         {
             string[] command;
-            StreamReader script = new StreamReader(@"PATH");
+            StreamReader script = new StreamReader(scriptFileName);
             while((command = script.ReadLine().Split(',')) != null)
             {
                 switch (command[0])
@@ -65,12 +76,12 @@ namespace Client
             return invitees;
         }
 
-        private List<(string, DateTime)> ParseDateLoc(string[] entries, int n)
+        private List<(string, DateTime)> ParseDateLoc(string[] command, int n)
         {
             List<(string, DateTime)> slots = new List<(string, DateTime)>();
             for (int i = 5; i < 5 + n; i++)
             {
-                string[] dateLoc = entries[i].Replace(@"(", "").Replace(@")", "").Split(';');
+                string[] dateLoc = command[i].Replace(@"(", "").Replace(@")", "").Split(';');
                 slots.Add((dateLoc[0], DateTime.Parse(dateLoc[1])));
             }
             return slots;
@@ -130,10 +141,8 @@ namespace Client
             // Find a new server
         }
 
-        private void setUp(string cURL, string sURL)
+        private void SetUpServer(string cURL, string sURL)
         {
-            TcpChannel channel = new TcpChannel();
-            ChannelServices.RegisterChannel(channel, true);
             myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
