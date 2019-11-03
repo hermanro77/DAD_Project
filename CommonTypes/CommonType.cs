@@ -21,12 +21,11 @@ namespace CommonTypes
             void NewUser(string userName, string userURL);
             void NewMeetingProposal(IMeetingServices proposal);
 
-            void CloseMeetingProposal(string meetingTopic, string coordinatorUsername);
-
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
 
             List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient);
+            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
         }
     }
 }

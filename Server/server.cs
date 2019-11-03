@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Server;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
@@ -17,21 +18,93 @@ namespace MeetingCalendar
         private List<IServerServices> servers;
         private List<string> serverURLs;
         private List<IMeetingServices> meetings;
+        private Location location = new Location();
 
-        public void closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        public ServerServices(Dictionary<string, IClientServices> clients, List<IServerServices> servers)
         {
-            foreach (MeetingServices meeting in meetings)
+            this.clients = clients;
+            this.servers = servers;
+        }
+
+        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        {
+            bool foundMeeting = false;
+            bool foundBestDateAndLocation = false;
+            //One server solution
+            foreach (MeetingServices meeting in this.meetings)
             {
+
                 if (meeting.Topic == meetingTopic)
                 {
-                    this.findBestDateAndLocation(meeting);
-                    meeting.Closed = true;
+                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                    foundMeeting = true;
                 }
-                else
+                
+            }
+            //checks for meeting in other services if meeting not in server (multiple servers solution)
+            if (!foundMeeting)
+            {
+                foreach (ServerServices server in servers)
                 {
-
+                    foreach (MeetingServices meeting in server.meetings)
+                    {
+                        if (meeting.Topic == meetingTopic) //finds the unique meeting
+                        {
+                            foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                            foundMeeting = true;
+                        }
+                    }
                 }
             }
+            if (!foundMeeting || !foundBestDateAndLocation)
+            {
+                return false; //could not find meeting or it did not exist a date and location that fitted
+            }
+            return true; //closed meeting
+
+        }
+
+        private bool findBestDateAndLocation(MeetingServices meeting)
+        {
+            int maxNumParticipants = 0;
+            (string, DateTime) bestLocAndDate = meeting.LocDateOptions[0];
+            Room bestroom = new Room("default", 0);
+            foreach ((string, DateTime) locdateoption in meeting.LocDateOptions)
+            {
+                
+                List<Room> availableRooms = new List<Room>();
+                // checks if location has available rooms and stores them
+                foreach (Room room in location.GetRooms[locdateoption.Item1])
+                {
+                    //check if room is booked on date requested for meeting and if participants dont exceed capacity of room
+                    if (!room.BookedDates.Contains(locdateoption.Item2) && meeting.MinParticipants <= room.Capacity) 
+                    {
+                        availableRooms.Add(room);
+                    }
+                }
+                int numParticipants = meeting.Participants[locdateoption].Count;
+                if (numParticipants > maxNumParticipants) //if it has more participants then the previous locAndDate
+                {
+                    maxNumParticipants = numParticipants;
+                    bestLocAndDate = locdateoption;
+                    bestroom = this.getSmallestRoom(availableRooms, numParticipants); //set the best room to 
+                    //the smallest one of the available rooms in this best locDate
+                }
+            }
+            if (bestroom.Capacity < maxNumParticipants)
+            {
+                int numPeopleToExclude = maxNumParticipants - bestroom.Capacity;
+                //exclude the last people that entered the participants list
+                for (int i = meeting.Participants[bestLocAndDate].Count - 1; i >= meeting.Participants[bestLocAndDate].Count-numPeopleToExclude; i--)
+                {
+                    meeting.Participants[bestLocAndDate].RemoveAt(i);
+                }
+                
+            }
+            bestroom.BookedDates.Add(bestLocAndDate.Item2); //books room for the date in bestLocAndDate
+            meeting.Closed = true; 
+            //this.meetings.Remove(meeting); Remove meeting after close?
+            return true;
         }
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
@@ -65,13 +138,22 @@ namespace MeetingCalendar
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             servers.Add(server);
         }
-
-        private void findBestDateAndLocation(MeetingServices meeting)
+        
+        private Room getSmallestRoom(List<Room> availableRooms, int numParticipants)
         {
-            return;
+            IEnumerable<Room> ascendingRoomsByCapacity = availableRooms.OrderBy(room => room.Capacity);
+            foreach (Room room in ascendingRoomsByCapacity)
+            {
+                if (room.Capacity >= numParticipants)
+                {
+                    return room;
+                }
+            }
+            //returns the room with the largest capacity if more participants than capacity
+            return ascendingRoomsByCapacity.Last(); 
         }
 
-        public void NewMeetingProposal(MeetingServices proposal)
+        public void NewMeetingProposal(IMeetingServices proposal)
         {
             meetings.Add(proposal);
         }
