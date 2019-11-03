@@ -19,10 +19,14 @@ namespace MeetingCalendar
         private List<string> serverURLs;
         private List<IMeetingServices> meetings;
         private Location location = new Location();
+        private int millSecWait;
+        private Random rnd = new Random();
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
+        public ServerServices(List<string> serverURLs, string serverID, string serverURL, int minWait, int maxWait)
         {
+            if (minWait == 0 && maxWait == 0) { this.millSecWait = 0; }
+            this.millSecWait = rnd.Next(minWait, maxWait);
             this.serverURLs = serverURLs;
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
