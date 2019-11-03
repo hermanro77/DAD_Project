@@ -12,7 +12,8 @@ namespace CommonTypes
 
         public interface IProcessCreationService
         {
-            void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay);
+            void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay, 
+                List<string> otherServerURLs);
             void createClient(string username, string clientURL, string serverURL, string scriptFilePath);
 
         }
