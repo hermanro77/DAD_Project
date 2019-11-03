@@ -166,5 +166,10 @@ namespace Client
         {
             Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
         }
+
+        public void PrintStatus()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
