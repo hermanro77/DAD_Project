@@ -8,8 +8,8 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static CommonTypes.CommonType;
 using Client;
+using static CommonTypes.CommonType;
 
 namespace ProcessCreationService
 {
