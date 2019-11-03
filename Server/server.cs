@@ -170,7 +170,7 @@ namespace MeetingCalendar
             {
                 if (meeting.Topic == meetingTopic)
                 {
-                    meeting.JoinMeeting(userName);
+                    meeting.JoinMeeting(userName, dateLoc);
                     break;
                 }
             }

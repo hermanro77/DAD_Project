@@ -115,6 +115,7 @@ namespace Client
             {
                 myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             } catch (Exception e) {
+                Console.WriteLine(e);
                 this.changeServer();
             }
         }
