@@ -8,6 +8,7 @@ namespace CommonTypes
         public interface IClientServices
         {
             void NewProposal(string uid);
+            void PrintStatus();
         }
 
         public interface IMeetingServices
@@ -23,6 +24,8 @@ namespace CommonTypes
 
             void closeMeetingProposal(string meetingTopic, string coordinatorUsername);
             void AddRoom(string location, int capacity, string roomName);
+            void AddNewServer(string URL);
+            void PrintStatus();
         }
     }
 }

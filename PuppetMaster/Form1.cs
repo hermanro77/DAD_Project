@@ -64,9 +64,17 @@ namespace PuppetMaster
 
         }
 
-        private void scriptTextbox_TextChanged(object sender, EventArgs e)
+     
+        public void addClientListView(string client)
         {
+            ListViewItem listViewClient = new ListViewItem(client);
+            clientsListView.Items.Add(listViewClient);
+        }
 
+        public void addServerListView(string server)
+        {
+            ListViewItem listViewServer = new ListViewItem(server);
+            serversListView.Items.Add(listViewServer);
         }
 
         private void clientsListView_SelectedIndexChanged(object sender, EventArgs e)

@@ -60,6 +60,14 @@ namespace MeetingCalendar
             Room newRoom = new Room(roomName, capacity);
             this.location.addRoom(newRoom, location);
         }
+        public void AddNewServer(string URL)
+        {
+
+        }
+        public void PrintStatus()
+        {
+            Console.WriteLine("Server: I am alive!");
+        }
     }
     class Server
     {

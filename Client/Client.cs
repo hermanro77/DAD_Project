@@ -13,7 +13,6 @@ namespace Client
 {
     class Client
     {
-        
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
         IServerServices myServer;
