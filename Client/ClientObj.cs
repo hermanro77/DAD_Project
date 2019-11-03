@@ -12,7 +12,7 @@ using static CommonTypes.CommonType;
 
 namespace Client
 {
-    class Client : MarshalByRefObject, IClientServices
+    public class ClientObj : MarshalByRefObject, IClientServices
     {
         
         private List<string> myCreatedMeetings = new List<string>();
@@ -20,7 +20,7 @@ namespace Client
         IServerServices myServer;
         TcpChannel tcp;
 
-        public Client(string userName, string clientURL, string serverURL, string scriptFileName)
+        public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
         {
             this.userName = userName;
             string[] partlyURL = clientURL.Split(':');
@@ -29,16 +29,17 @@ namespace Client
             this.SetUpServer(clientURL, serverURL);
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(Client),
-                "userName",
+                typeof(ClientObj),
+                userName,
                 WellKnownObjectMode.Singleton);
             this.RunScript(scriptFileName);
         }
 
-        private void RunScript(string scriptFileName)
+        public void RunScript(object scriptFileName)
         {
+            
             string[] command;
-            StreamReader script = new StreamReader(scriptFileName);
+            StreamReader script = new StreamReader((string)scriptFileName);
             while((command = script.ReadLine().Split(',')) != null)
             {
                 switch (command[0])

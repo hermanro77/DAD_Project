@@ -5,9 +5,6 @@ using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
-using System.Text;
-using System.Threading.Tasks;
-using CommonTypes;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -20,10 +17,9 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings;
         private Location location = new Location();
 
-        public ServerServices(Dictionary<string, IClientServices> clients, List<IServerServices> servers)
+        public void initServer()
         {
-            this.clients = clients;
-            this.servers = servers;
+
         }
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
