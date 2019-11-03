@@ -32,10 +32,9 @@ namespace PuppetMaster
             serverURLs.Add(URL);
 
             int indexOfPCSURL = createServerCount % processCreationServiceURLs.Count;
-            IProcessCreationService PCS = (IProcessCreationService).Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
+            IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
             PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, serverURLs);
            
-            //todo: add parameters
             //TODO: inform servers about the new server
             foreach (IServerServices server in servers)
             {
@@ -50,10 +49,9 @@ namespace PuppetMaster
 
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
         {
-            int indexOfPCS = createClientCount % processCreationServices.Count;
-            IProcessCreationService PCS = (IProcessCreationService).Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
+            int indexOfPCS = createClientCount % processCreationServiceURLs.Count;
+            IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCS]);
             PCS.createClient(username, clientURL, serverURL, scriptFilePath);
-
 
             //Update GUI
             object[] clientstring = new object[1];

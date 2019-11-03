@@ -13,10 +13,11 @@ namespace PuppetMaster
 {
     public partial class Form1 : Form
     {
-        PuppetMaster pm = new PuppetMaster();
+        private PuppetMaster pm;
         public Form1()
         {
             InitializeComponent();
+            this.pm = new PuppetMaster(this);
         }
 
         private void runScriptButton_Click(object sender, EventArgs e)

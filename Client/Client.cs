@@ -17,6 +17,7 @@ namespace Client
     {
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
+        private string serverURL;
         IServerServices myServer;
         TcpChannel tcp;
 
@@ -161,14 +162,9 @@ namespace Client
             myServer.NewClient(this.userName, cURL);
         }
 
-        public void NewProposal(string uid)
-        {
-            throw new NotImplementedException();
-        }
-
         public void PrintStatus()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
         }
     }
 }
