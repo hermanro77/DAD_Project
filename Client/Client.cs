@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
@@ -11,43 +12,49 @@ using static CommonTypes.CommonType;
 
 namespace Client
 {
-    class Client
+    class Client : MarshalByRefObject, IClientServices
     {
         
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
         IServerServices myServer;
-        static void Main(string[] args)
-        {
-        
-        }
+        TcpChannel tcp;
 
         public Client(string userName, string clientURL, string serverURL, string scriptFileName)
         {
             this.userName = userName;
-            this.setUp(clientURL, serverURL);
+            string[] partlyURL = clientURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            tcp = new TcpChannel(Int32.Parse(endURL[0]));
+            this.SetUpServer(clientURL, serverURL);
+            ChannelServices.RegisterChannel(tcp, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(Client),
+                "userName",
+                WellKnownObjectMode.Singleton);
+            this.RunScript(scriptFileName);
         }
 
-        private void runScript()
+        private void RunScript(string scriptFileName)
         {
             string[] command;
-            StreamReader script = new StreamReader(@"PATH");
+            StreamReader script = new StreamReader(scriptFileName);
             while((command = script.ReadLine().Split(',')) != null)
             {
                 switch (command[0])
                 {
                     case "list":
-                        this.listMeetings();
+                        this.ListMeetings();
                         break;
                     case "create":
                         this.createMeeting(command[1], Int32.Parse(command[2]),
-                            this.ParseDateLoc(command), this.ListInvitees(command));
+                            this.ParseDateLoc(command, Int32.Parse(command[3])), this.ListInvitees(command));
                         break;
                     case "join":
-                        this.joinMeeting(command[1]);
+                        this.JoinMeeting(command[1], this.ParseDateLoc(command, Int32.Parse(command[2])));
                         break;
                     case "close":
-                        this.closeMeeting(command[1]);
+                        this.closeMeetingProposal(command[1]);
                         break;
                     case "wait":
                         this.wait(Int32.Parse(command[1]));
@@ -69,13 +76,12 @@ namespace Client
             return invitees;
         }
 
-        private List<(string, DateTime)> ParseDateLoc(string[] entries)
+        private List<(string, DateTime)> ParseDateLoc(string[] command, int n)
         {
             List<(string, DateTime)> slots = new List<(string, DateTime)>();
-            int n = Int32.Parse(entries[3]);
             for (int i = 5; i < 5 + n; i++)
             {
-                string[] dateLoc = entries[i].Replace(@"(", "").Replace(@")", "").Split(';');
+                string[] dateLoc = command[i].Replace(@"(", "").Replace(@")", "").Split(';');
                 slots.Add((dateLoc[0], DateTime.Parse(dateLoc[1])));
             }
             return slots;
@@ -103,8 +109,9 @@ namespace Client
             // USE TRY-CATCH
         }
 
-        private void joinMeeting(string meetingTopic)
+        private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
         {
+            myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             // Joins an existing meeting, using meetingTopic as unique ID
             // USE TRY-CATCH
         }
@@ -115,7 +122,7 @@ namespace Client
             {
                 try
                 {
-                    myServer.closeMeetingProposal(meetingTopic, this.userName);
+                    myServer.CloseMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     changeServer();
@@ -123,9 +130,10 @@ namespace Client
             }
         }
 
-        private void listMeetings()
+        private void ListMeetings()
         {
-            myServer.getAvailableMeetings(userName);
+            List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, true);
+            Console.WriteLine(availableMeetings);
         }
 
         private void changeServer()
@@ -133,14 +141,17 @@ namespace Client
             // Find a new server
         }
 
-        private void setUp(string cURL, string sURL)
+        private void SetUpServer(string cURL, string sURL)
         {
-            TcpChannel channel = new TcpChannel();
-            ChannelServices.RegisterChannel(channel, true);
             myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
             myServer.NewUser(this.userName, cURL);
+        }
+
+        public void NewProposal(string uid)
+        {
+            throw new NotImplementedException();
         }
     }
 }

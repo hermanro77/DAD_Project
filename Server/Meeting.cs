@@ -33,7 +33,11 @@ namespace MeetingCalendar
         public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
         public Boolean Closed { set => closed = true;  }
-
+        
+        public bool IsInvited(string userName)
+        {
+            return participants.Contains(userName);
+        }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
         public void AddParticipantToSlot((string, DateTime) slot, string part) {
@@ -43,7 +47,7 @@ namespace MeetingCalendar
             }
         }
 
-        public void JoinMeeting()
+        public void JoinMeeting(string userName)
         {
             return;
         }
