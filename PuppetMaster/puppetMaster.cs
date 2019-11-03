@@ -16,8 +16,11 @@ namespace PuppetMaster
             this.myForm = form;
         }
         List<IServerServices> servers = new List<IServerServices>();
+        List<string> serverURLs = new List<String>();
+
         List<IClientServices> clients = new List<IClientServices>();
-        List<ProcessCreationService> processCreationServices = new List<ProcessCreationService>();
+        List<string> processCreationServiceURLs = new List<string>();
+
         int createServerCount;
         int createClientCount;
 
@@ -25,9 +28,15 @@ namespace PuppetMaster
 
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay)
         {
-            //send the existing servers to the PCS
-            int indexOfPCS = createServerCount % processCreationServices.Count;
-            processCreationServices[indexOfPCS].createServer(); //todo: add parameters
+            AddNewServerToList(URL);
+            serverURLs.Add(URL);
+
+           
+            int indexOfPCSURL = createServerCount % processCreationServiceURLs.Count;
+            IProcessCreationService PCS = (IProcessCreationService).Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
+            PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, serverURLs);
+           
+            //todo: add parameters
             //TODO: inform servers about the new server
             foreach (IServerServices server in servers)
             {
@@ -43,7 +52,9 @@ namespace PuppetMaster
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
         {
             int indexOfPCS = createClientCount % processCreationServices.Count;
-            processCreationServices[indexOfPCS].createClient();
+            IProcessCreationService PCS = (IProcessCreationService).Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
+            PCS.createClient(username, clientURL, serverURL, scriptFilePath);
+
 
             //Update GUI
             object[] clientstring = new object[1];
@@ -70,7 +81,12 @@ namespace PuppetMaster
                 client.PrintStatus();
             }
         }
-        
+        public void AddNewServerToList(string serverURL)
+        {
+            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
+            servers.Add(server);
+        }
 
     }
+     
 }
