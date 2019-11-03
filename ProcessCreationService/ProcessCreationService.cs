@@ -18,7 +18,7 @@ namespace ProcessCreationService
             List<string> otherServerURLs)
         {
             ServerServices server = new ServerServices(serverID, URL, otherServerURLs);
-            Thread thread = new Thread(new ThreadStart(server.initializeServer()));
+            Thread thread = new Thread(new ThreadStart(server.initServer()));
             thread.Start();
         }
 
