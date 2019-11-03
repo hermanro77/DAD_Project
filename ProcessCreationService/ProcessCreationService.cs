@@ -19,17 +19,12 @@ namespace ProcessCreationService
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay, 
             List<string> otherServerURLs)
         {
-            ServerServices server = new ServerServices(otherServerURLs, serverID, URL);
-            Thread thread = new Thread(new ThreadStart(server.initServer)); //Create initServer method
-            thread.Start();
+            new ServerServices(otherServerURLs, serverID, URL, min_delay, max_delay);
         }
-
+        
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
         {
-            object path = (object)scriptFilePath;
-            ClientObj client = new ClientObj(username, clientURL, serverURL, scriptFilePath);
-            Thread thread = new Thread(new ParameterizedThreadStart(client.RunScript));
-            thread.Start(scriptFilePath);
+            ClientObj client = new ClientObj(username, clientURL, serverURL, scriptFilePath);   
         }
 
         static void Main(string[] args)

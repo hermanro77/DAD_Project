@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Threading;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -17,10 +18,6 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings;
         private Location location = new Location();
 
-        public void initServer()
-        {
-
-        }
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
@@ -156,13 +153,17 @@ namespace MeetingCalendar
 
         public void NewUser(string uname, string userURL)
         {
-            if (!clients.ContainsKey(uname))
+            lock (clients)
             {
-                IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                userURL);
-                clients.Add(uname, cli);
+
+                if (!clients.ContainsKey(uname))
+                {
+                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    userURL);
+                    clients.Add(uname, cli);
+                }
+                
             }
-            // throw new NotImplementedException();
         }
 
         public void NewMeetingProposal(IMeetingServices proposal)

@@ -7,6 +7,7 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
@@ -35,11 +36,11 @@ namespace Client
             this.RunScript(scriptFileName);
         }
 
-        public void RunScript(object scriptFileName)
+        public void RunScript(string scriptFileName)
         {
             
             string[] command;
-            StreamReader script = new StreamReader((string)scriptFileName);
+            StreamReader script = new StreamReader(scriptFileName);
             while((command = script.ReadLine().Split(',')) != null)
             {
                 switch (command[0])
