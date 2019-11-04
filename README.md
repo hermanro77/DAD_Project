@@ -8,6 +8,7 @@ Meeting rooms
 5) When a client ask for something from the server, can the method just return the requested information, or does the servar has to
 call the client with its interface methods?
 \t if so, also change in commontypes
+6) Is the lock used in Server to lock clients list correct?
 
 
 ### Notes
