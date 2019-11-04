@@ -101,7 +101,8 @@ namespace MeetingCalendar
         }
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
+        public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
+            int min_delay, int max_delay)
         {
             this.serverURLs = serverURLs;
             this.SetupServers();
@@ -219,5 +220,12 @@ namespace MeetingCalendar
             }
             return availableMeetings;
         }
+        static void Main(string[] args)
+        {
+            List<string> URLs = new List<string>();
+            new ServerServices(URLs, args[0], args[1], Int32.Parse(args[2]),
+                Int32.Parse(args[3]), Int32.Parse(args[4]));
+        }
     }
+
 }
