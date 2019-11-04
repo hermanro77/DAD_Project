@@ -11,4 +11,4 @@ call the client with its interface methods?
 
 
 ### Notes
-LIST is not serializable, use Array.
+List is not serializable, use Array.
