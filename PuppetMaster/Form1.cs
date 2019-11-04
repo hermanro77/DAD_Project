@@ -45,7 +45,7 @@ namespace PuppetMaster
                                 pm.addRoom(command[1], Int32.Parse(command[2]), command[3]);
                                 break;
                             case "Status":
-                                //TODO
+                                pm.Status();
                                 break;
                             case "Wait":
                                 //TODO
