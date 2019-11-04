@@ -20,18 +20,18 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings;
         private Location location = new Location();
         private int millSecWait;
+        TcpChannel channel;
         private Random rnd = new Random();
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
         public ServerServices(List<string> serverURLs, string serverID, string serverURL, int minWait, int maxWait)
         {
-            if (minWait == 0 && maxWait == 0) { this.millSecWait = 0; }
-            this.millSecWait = rnd.Next(minWait, maxWait);
+            this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
             this.serverURLs = serverURLs;
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
+            channel = new TcpChannel(Int32.Parse(endURL[0]));
 
             ChannelServices.RegisterChannel(channel, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
@@ -206,7 +206,7 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in servers)
                 {
-                    foreach(MeetingServices meets in server.ListMeetings(userName, false))
+                    foreach(IMeetingServices meets in server.ListMeetings(userName, false))
                     {
                         availableMeetings.Add(meets);
                     }

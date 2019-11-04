@@ -30,7 +30,7 @@ namespace Client
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(Client),
-                "userName",
+                userName,
                 WellKnownObjectMode.Singleton);
             this.RunScript(scriptFileName);
         }
