@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
+using System.Net;
 
 namespace PuppetMaster
 {
@@ -19,44 +20,96 @@ namespace PuppetMaster
         List<string> serverURLs = new List<String>();
 
         List<IClientServices> clients = new List<IClientServices>();
-        List<string> processCreationServiceURLs = new List<string>();
-
-        int createServerCount;
-        int createClientCount;
+       
 
         public List<IClientServices> Clients { get => clients; }
 
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay)
         {
-            AddNewServerToList(URL);
-            serverURLs.Add(URL);
+            try
+                { AddNewServerToList(URL);
+                serverURLs.Add(URL);
 
-            int indexOfPCSURL = createServerCount % processCreationServiceURLs.Count;
-            IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCSURL]);
-            PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, serverURLs);
+                string[] URLsplit = URL.Split(':');
+                //sjekke om det er egen IP-adresse eller om
+                if (URLsplit[1] == getIPAdress())
+                {
+                    //create server
+                }
+                else
+                { 
+                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1]+":10000");
+                                PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, chooseNeighboorServer());
+                }
+
            
-            //TODO: inform servers about the new server
-            foreach (IServerServices server in servers)
-            {
-                server.AddNewServer(URL);
-            }
+                //TODO: inform servers about the new server
+                foreach (IServerServices server in servers)
+                {
+                    server.AddNewServer(URL);
+                }
 
-            //update GUI
-            object[] serverstring = new object[1];
-            serverstring[0] = "serverstring TODO";
-            myForm.BeginInvoke(new InvokeDelegate(myForm.addServerListView), serverstring);
+                //update GUI
+                object[] serverstring = new object[1];
+                serverstring[0] = "serverstring TODO";
+                myForm.BeginInvoke(new InvokeDelegate(myForm.addServerListView), serverstring);
+
+            }catch (Exception e)
+            {
+                Console.WriteLine("PM did not manage to create server");
+            }
+           
+        }
+
+        private string getIPAdress()
+        {
+            string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
+            // Get the IP  
+            string myIP = Dns.GetHostByName(hostName).AddressList[0].ToString();
+            Console.WriteLine("My IP Address is :" + myIP);
+            Console.ReadKey();
+            return "myIP";
+        }
+
+        private string chooseNeighboorServer()
+        {
+            if (serverURLs.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                string neighboorURL = serverURLs[serverURLs.Count -1];
+                return neighboorURL;
+            }
         }
 
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
         {
-            int indexOfPCS = createClientCount % processCreationServiceURLs.Count;
-            IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCS]);
-            PCS.createClient(username, clientURL, serverURL, scriptFilePath);
+            try
+            {
+                string[] URLsplit = serverURL.Split(':');
+                //sjekke om det er egen IP-adresse eller om
+                if (URLsplit[1] == getIPAdress())
+                {
+                    //create client
+                }
+                else
+                {
+                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCS]);
+                PCS.createClient(username, clientURL, serverURL, scriptFilePath);
 
-            //Update GUI
-            object[] clientstring = new object[1];
-            clientstring[0] = "clientstring ";
-            myForm.BeginInvoke(new InvokeDelegate(myForm.addClientListView), clientstring);
+                }
+                //Update GUI
+                object[] clientstring = new object[1];
+                clientstring[0] = "clientstring ";
+                myForm.BeginInvoke(new InvokeDelegate(myForm.addClientListView), clientstring);
+
+            }catch (Exception e)
+            {
+                Console.WriteLine();
+            }
+            
         }
 
         public void addRoom(string location, int capacity, string roomName)
