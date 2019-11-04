@@ -9,4 +9,6 @@ Meeting rooms
 call the client with its interface methods?
 \t if so, also change in commontypes
 
+
+### Notes
 LIST is not serializable, use Array.
