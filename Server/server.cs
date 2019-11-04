@@ -172,7 +172,7 @@ namespace MeetingCalendar
         { 
             foreach (MeetingServices meeting in meetings)
             {
-                if (meeting.Topic == meetingTopic)
+                if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
                 {
                     meeting.JoinMeeting(userName, dateLoc);
                     break;
