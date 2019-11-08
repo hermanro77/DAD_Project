@@ -8,12 +8,13 @@ using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
 namespace Client
 {
-    class Client : MarshalByRefObject, IClientServices
+    public class ClientObj : MarshalByRefObject, IClientServices
     {
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
@@ -21,7 +22,7 @@ namespace Client
         IServerServices myServer;
         TcpChannel tcp;
 
-        public Client(string userName, string clientURL, string serverURL, string scriptFileName)
+        public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
         {
             this.userName = userName;
             string[] partlyURL = clientURL.Split(':');
@@ -30,14 +31,15 @@ namespace Client
             this.SetUpServer(clientURL, serverURL);
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(Client),
-                "userName",
+                typeof(ClientObj),
+                userName,
                 WellKnownObjectMode.Singleton);
             this.RunScript(scriptFileName);
         }
 
-        private void RunScript(string scriptFileName)
+        public void RunScript(string scriptFileName)
         {
+            
             string[] command;
             StreamReader script = new StreamReader(scriptFileName);
             while((command = script.ReadLine().Split(',')) != null)
@@ -116,6 +118,7 @@ namespace Client
             {
                 myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             } catch (Exception e) {
+                Console.WriteLine(e);
                 this.changeServer();
             }
         }
@@ -170,6 +173,11 @@ namespace Client
         public void PrintStatus()
         {
             throw new NotImplementedException();
+        }
+
+        static void Main(string[] args)
+        {
+
         }
     }
 }

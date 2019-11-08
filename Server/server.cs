@@ -5,9 +5,7 @@ using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
-using System.Text;
-using System.Threading.Tasks;
-using CommonTypes;
+using System.Threading;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -19,15 +17,20 @@ namespace MeetingCalendar
         private List<string> serverURLs;
         private List<IMeetingServices> meetings;
         private Location location = new Location();
+        private int millSecWait;
+        TcpChannel channel;
+        private Random rnd = new Random();
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL)
+        public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
+            int minWait, int maxWait)
         {
-            this.serverURLs = serverURLs;
+            this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
+            this.serverURLs = new List<string>(); //use otherServerURL to get all servers and add them to serverURLs list if this is not the first server to be created
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
+            channel = new TcpChannel(Int32.Parse(endURL[0]));
 
             ChannelServices.RegisterChannel(channel, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
@@ -35,6 +38,7 @@ namespace MeetingCalendar
                 serverID,
                 WellKnownObjectMode.Singleton);
         }
+
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
@@ -153,13 +157,17 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
-            if (!clients.ContainsKey(uname))
+            lock (clients)
             {
-                IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                userURL);
-                clients.Add(uname, cli);
+
+                if (!clients.ContainsKey(uname))
+                {
+                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    userURL);
+                    clients.Add(uname, cli);
+                }
+                
             }
-            // throw new NotImplementedException();
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -179,9 +187,9 @@ namespace MeetingCalendar
         { 
             foreach (MeetingServices meeting in meetings)
             {
-                if (meeting.Topic == meetingTopic)
+                if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
                 {
-                    meeting.JoinMeeting(userName);
+                    meeting.JoinMeeting(userName, dateLoc);
                     break;
                 }
             }
@@ -213,7 +221,7 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in servers)
                 {
-                    foreach(MeetingServices meets in server.ListMeetings(userName, false))
+                    foreach(IMeetingServices meets in server.ListMeetings(userName, false))
                     {
                         availableMeetings.Add(meets);
                     }
@@ -222,5 +230,11 @@ namespace MeetingCalendar
             }
             return availableMeetings;
         }
+        static void Main(string[] args)
+        {
+            new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
+                Int32.Parse(args[4]), Int32.Parse(args[5]));
+        }
     }
+
 }
