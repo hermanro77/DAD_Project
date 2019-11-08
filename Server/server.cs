@@ -104,7 +104,7 @@ namespace MeetingCalendar
         public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
             int min_delay, int max_delay)
         {
-            this.serverURLs = serverURLs;
+            this.serverURLs = serverURLs; //TODO: change to a method that goes to otherServerURL and gets list of servers if this is not the first server created
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
@@ -167,10 +167,10 @@ namespace MeetingCalendar
             }
         }
 
-        public void NewMeetingProposal(IMeetingServices proposal)
-        {
-            throw new NotImplementedException();
-        }
+        //public void NewMeetingProposal(IMeetingServices proposal)
+        //{
+         //   throw new NotImplementedException();
+        //}
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
@@ -222,9 +222,8 @@ namespace MeetingCalendar
         }
         static void Main(string[] args)
         {
-            List<string> URLs = new List<string>();
-            new ServerServices(URLs, args[0], args[1], Int32.Parse(args[2]),
-                Int32.Parse(args[3]), Int32.Parse(args[4]));
+            new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
+                Int32.Parse(args[4]), Int32.Parse(args[5]));
         }
     }
 

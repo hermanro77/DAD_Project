@@ -124,7 +124,7 @@ namespace Client
             {
                 try
                 {
-                    myServer.CloseMeetingProposal(meetingTopic, this.userName);
+                    myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     changeServer();
@@ -154,6 +154,11 @@ namespace Client
         public void NewProposal(string uid)
         {
             throw new NotImplementedException();
+        }
+
+        static void Main(string[] args)
+        {
+
         }
     }
 }
