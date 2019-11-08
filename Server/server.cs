@@ -22,10 +22,11 @@ namespace MeetingCalendar
         private Random rnd = new Random();
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL, int minWait, int maxWait)
+        public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
+            int minWait, int maxWait)
         {
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURLs = serverURLs;
+            this.serverURLs = new List<string>(); //use otherServerURL to get all servers and add them to serverURLs list if this is not the first server to be created
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
@@ -37,6 +38,7 @@ namespace MeetingCalendar
                 serverID,
                 WellKnownObjectMode.Singleton);
         }
+
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
@@ -116,23 +118,6 @@ namespace MeetingCalendar
             meeting.Closed = true; 
             //this.meetings.Remove(meeting); Remove meeting after close?
             return true;
-        }
-
-        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
-            int min_delay, int max_delay)
-        {
-            this.serverURLs = serverURLs; //TODO: change to a method that goes to otherServerURL and gets list of servers if this is not the first server created
-            this.SetupServers();
-            string[] partlyURL = serverURL.Split(':');
-            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            TcpChannel channel = new TcpChannel(Int32.Parse(endURL[0]));
-
-            ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ServerServices),
-                serverID,
-                WellKnownObjectMode.Singleton);
         }
 
         private void SetupServers()
