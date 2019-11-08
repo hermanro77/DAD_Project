@@ -5,9 +5,7 @@ using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
-using System.Text;
-using System.Threading.Tasks;
-using CommonTypes;
+using System.Threading;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -24,10 +22,11 @@ namespace MeetingCalendar
         private Random rnd = new Random();
 
         // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
-        public ServerServices(List<string> serverURLs, string serverID, string serverURL, int minWait, int maxWait)
+        public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
+            int minWait, int maxWait)
         {
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURLs = serverURLs;
+            this.serverURLs = new List<string>(); //use otherServerURL to get all servers and add them to serverURLs list if this is not the first server to be created
             this.SetupServers();
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
@@ -39,6 +38,7 @@ namespace MeetingCalendar
                 serverID,
                 WellKnownObjectMode.Singleton);
         }
+
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
@@ -157,13 +157,17 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
-            if (!clients.ContainsKey(uname))
+            lock (clients)
             {
-                IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                userURL);
-                clients.Add(uname, cli);
+
+                if (!clients.ContainsKey(uname))
+                {
+                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    userURL);
+                    clients.Add(uname, cli);
+                }
+                
             }
-            // throw new NotImplementedException();
         }
 
 
@@ -215,5 +219,11 @@ namespace MeetingCalendar
             }
             return availableMeetings;
         }
+        static void Main(string[] args)
+        {
+            new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
+                Int32.Parse(args[4]), Int32.Parse(args[5]));
+        }
     }
+
 }
