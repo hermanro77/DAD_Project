@@ -169,7 +169,18 @@ namespace MeetingCalendar
                 
             }
         }
-
+        public void AddRoom(string location, int capacity, string roomName)
+        {
+            Room newRoom = new Room(roomName, capacity);
+            this.location.addRoom(newRoom, location);
+        }
+      
+        public void PrintStatus()
+        {
+            Console.WriteLine("Server: I am alive!");
+        }
+    
+  
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)

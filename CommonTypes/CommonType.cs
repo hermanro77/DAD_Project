@@ -7,7 +7,8 @@ namespace CommonTypes
     {
         public interface IClientServices
         {
-            void NewProposal(string uid);
+            
+            void PrintStatus();
         }
 
         public interface IProcessCreationService
@@ -34,6 +35,9 @@ namespace CommonTypes
 
             List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            void AddRoom(string location, int capacity, string roomName);
+            void AddNewServer(string URL);
+            void PrintStatus();
         }
     }
 }

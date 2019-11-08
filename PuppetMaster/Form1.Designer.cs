@@ -67,7 +67,9 @@
             // clientsListView
             // 
             this.clientsListView.Location = new System.Drawing.Point(37, 171);
+            this.clientsListView.MultiSelect = false;
             this.clientsListView.Name = "clientsListView";
+            this.clientsListView.ShowGroups = false;
             this.clientsListView.Size = new System.Drawing.Size(197, 267);
             this.clientsListView.TabIndex = 5;
             this.clientsListView.UseCompatibleStateImageBehavior = false;
@@ -87,7 +89,8 @@
             this.serversListView.Location = new System.Drawing.Point(305, 171);
             this.serversListView.Name = "serversListView";
             this.serversListView.Size = new System.Drawing.Size(191, 267);
-            this.serversListView.TabIndex = 7;
+            this.serversListView.TabIndex = 5;
+            this.serversListView.TabStop = false;
             this.serversListView.UseCompatibleStateImageBehavior = false;
             this.serversListView.SelectedIndexChanged += new System.EventHandler(this.serversListView_SelectedIndexChanged);
             // 

@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationService", ".
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "..\Client\Client.csproj", "{DCB9D95D-1081-4A26-A56B-E2F47055FC8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster", "PuppetMaster\PuppetMaster.csproj", "{F80F01B7-4012-4BB2-A1D3-562A8E314671}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster", "..\PuppetMaster\PuppetMaster.csproj", "{F80F01B7-4012-4BB2-A1D3-562A8E314671}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

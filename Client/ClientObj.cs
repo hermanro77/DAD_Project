@@ -1,4 +1,5 @@
-﻿using MeetingCalendar;
+﻿
+using MeetingCalendar;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,9 +16,9 @@ namespace Client
 {
     public class ClientObj : MarshalByRefObject, IClientServices
     {
-        
         private List<string> myCreatedMeetings = new List<string>();
         private string userName;
+        private string serverURL;
         IServerServices myServer;
         TcpChannel tcp;
 
@@ -99,13 +100,13 @@ namespace Client
         {
             try
             {
-            MeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+            IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 myServer.NewMeetingProposal(meetingProposal);
 
             }
-            catch
+            catch (Exception e)
             {
-                //changeservver
+                this.changeServer();
             }
             // Create new meeting
             // USE TRY-CATCH
@@ -164,7 +165,12 @@ namespace Client
             myServer.NewClient(this.userName, cURL);
         }
 
-        public void NewProposal(string uid)
+        public void PrintStatus()
+        {
+            Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
+        }
+
+        public void PrintStatus()
         {
             throw new NotImplementedException();
         }

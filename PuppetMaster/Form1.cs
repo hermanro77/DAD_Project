@@ -13,10 +13,11 @@ namespace PuppetMaster
 {
     public partial class Form1 : Form
     {
-        PuppetMaster pm = new PuppetMaster();
+        private PuppetMaster pm;
         public Form1()
         {
             InitializeComponent();
+            this.pm = new PuppetMaster(this);
         }
 
         private void runScriptButton_Click(object sender, EventArgs e)
@@ -44,7 +45,7 @@ namespace PuppetMaster
                                 pm.addRoom(command[1], Int32.Parse(command[2]), command[3]);
                                 break;
                             case "Status":
-                                //TODO
+                                pm.Status();
                                 break;
                             case "Wait":
                                 //TODO
@@ -64,9 +65,17 @@ namespace PuppetMaster
 
         }
 
-        private void scriptTextbox_TextChanged(object sender, EventArgs e)
+     
+        public void addClientListView(string client)
         {
+            ListViewItem listViewClient = new ListViewItem(client);
+            clientsListView.Items.Add(listViewClient);
+        }
 
+        public void addServerListView(string server)
+        {
+            ListViewItem listViewServer = new ListViewItem(server);
+            serversListView.Items.Add(listViewServer);
         }
 
         private void clientsListView_SelectedIndexChanged(object sender, EventArgs e)
