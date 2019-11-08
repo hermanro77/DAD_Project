@@ -36,7 +36,7 @@ namespace MeetingCalendar
         
         public bool IsInvited(string userName)
         {
-            return participants.Contains(userName);
+            return invitees.Contains(userName);
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
@@ -47,9 +47,12 @@ namespace MeetingCalendar
             }
         }
 
-        public void JoinMeeting(string userName)
+        public void JoinMeeting(string userName, List<(string, DateTime)> dateLoc)
         {
-            return;
+            foreach ((string, DateTime) tuple in dateLoc)
+            {
+                this.AddParticipantToSlot(tuple, userName);
+            }
         }
     }
 }

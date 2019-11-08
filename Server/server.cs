@@ -17,8 +17,26 @@ namespace MeetingCalendar
         private List<string> serverURLs;
         private List<IMeetingServices> meetings;
         private Location location = new Location();
+        private int millSecWait;
+        TcpChannel channel;
+        private Random rnd = new Random();
 
+        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
+        public ServerServices(List<string> serverURLs, string serverID, string serverURL, int minWait, int maxWait)
+        {
+            this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
+            this.serverURLs = serverURLs;
+            this.SetupServers();
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            channel = new TcpChannel(Int32.Parse(endURL[0]));
 
+            ChannelServices.RegisterChannel(channel, false);
+            RemotingConfiguration.RegisterWellKnownServiceType(
+                typeof(ServerServices),
+                serverID,
+                WellKnownObjectMode.Singleton);
+        }
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
@@ -152,7 +170,7 @@ namespace MeetingCalendar
             meetings.Add(proposal);
         }
 
-        public void NewUser(string uname, string userURL)
+        public void NewClient(string uname, string userURL)
         {
             lock (clients)
             {
@@ -167,19 +185,15 @@ namespace MeetingCalendar
             }
         }
 
-        //public void NewMeetingProposal(IMeetingServices proposal)
-        //{
-         //   throw new NotImplementedException();
-        //}
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
         { 
             foreach (MeetingServices meeting in meetings)
             {
-                if (meeting.Topic == meetingTopic)
+                if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
                 {
-                    meeting.JoinMeeting(userName);
+                    meeting.JoinMeeting(userName, dateLoc);
                     break;
                 }
             }
@@ -211,7 +225,7 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in servers)
                 {
-                    foreach(MeetingServices meets in server.ListMeetings(userName, false))
+                    foreach(IMeetingServices meets in server.ListMeetings(userName, false))
                     {
                         availableMeetings.Add(meets);
                     }

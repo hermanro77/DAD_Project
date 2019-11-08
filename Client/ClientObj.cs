@@ -113,9 +113,13 @@ namespace Client
 
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
         {
-            myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
-            // Joins an existing meeting, using meetingTopic as unique ID
-            // USE TRY-CATCH
+            try
+            {
+                myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+                this.changeServer();
+            }
         }
 
         private void closeMeetingProposal(string meetingTopic)
@@ -127,6 +131,7 @@ namespace Client
                     myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
+                    Console.WriteLine(e);
                     changeServer();
                 }
             }
@@ -134,8 +139,16 @@ namespace Client
 
         private void ListMeetings()
         {
-            List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, true);
-            Console.WriteLine(availableMeetings);
+            try
+            {
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, true);
+                Console.WriteLine(availableMeetings);
+            } catch (Exception e)
+            {
+                Console.WriteLine(e);
+                this.changeServer();
+            }
+            
         }
 
         private void changeServer()
@@ -148,7 +161,7 @@ namespace Client
             myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
-            myServer.NewUser(this.userName, cURL);
+            myServer.NewClient(this.userName, cURL);
         }
 
         public void NewProposal(string uid)
