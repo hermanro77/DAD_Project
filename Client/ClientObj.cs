@@ -1,5 +1,4 @@
-﻿
-using MeetingCalendar;
+﻿using MeetingCalendar;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,7 +33,7 @@ namespace Client
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-            this.RunScript(scriptFileName);
+           // this.RunScript(scriptFileName);
         }
 
         public void RunScript(string scriptFileName)
@@ -169,15 +168,10 @@ namespace Client
         {
             Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
         }
-
-        public void PrintStatus()
-        {
-            throw new NotImplementedException();
-        }
-
         static void Main(string[] args)
         {
-
+            new ClientObj(args[0], args[1], args[2], args[3]);
+            Console.ReadLine();
         }
     }
 }

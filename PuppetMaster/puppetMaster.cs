@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 using System.Net;
+using System.Diagnostics;
 
 namespace PuppetMaster
 {
@@ -21,7 +22,6 @@ namespace PuppetMaster
 
         List<IClientServices> clients = new List<IClientServices>();
        
-
         public List<IClientServices> Clients { get => clients; }
 
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay)
@@ -34,14 +34,30 @@ namespace PuppetMaster
                 //sjekke om det er egen IP-adresse eller om
                 if (URLsplit[1] == getIPAdress())
                 {
-                    //create server
+                    try
+                    {
+                        using (Process ServerProcess = new Process())
+                        {
+
+                            ServerProcess.StartInfo.FileName = "C:\\..\\Server\\bin\\Debug\\Server.exe";
+                            ServerProcess.StartInfo.Arguments = chooseNeighboorServer() + " " + serverID + " " + URL + " " +
+                                max_faults.ToString() + " " +
+                                min_delay.ToString() + " " +
+                                max_delay.ToString();
+                            ServerProcess.Start();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Could not initiate new Server Process");
+                        Console.WriteLine(e.Message);
+                    }
                 }
                 else
                 { 
-                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1]+":10000");
+                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1]+":10000/PCS");
                                 PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, chooseNeighboorServer());
                 }
-
            
                 //TODO: inform servers about the new server
                 foreach (IServerServices server in servers)
@@ -58,7 +74,6 @@ namespace PuppetMaster
             {
                 Console.WriteLine("PM did not manage to create server");
             }
-           
         }
 
         private string getIPAdress()
@@ -88,15 +103,22 @@ namespace PuppetMaster
         {
             try
             {
-                string[] URLsplit = serverURL.Split(':');
+                string[] URLsplit = clientURL.Split(':');
                 //sjekke om det er egen IP-adresse eller om
                 if (URLsplit[1] == getIPAdress())
                 {
-                    //create client
+                    using (Process ClientProcess = new Process())
+                    {
+
+                        ClientProcess.StartInfo.FileName = "Path to CLient.exe"; //Where is Cleint.exe?? not in debug file
+                        ClientProcess.StartInfo.Arguments = username + " " + clientURL + " " + serverURL + " " +
+                            scriptFilePath;
+                        ClientProcess.Start();
+                    }
                 }
                 else
                 {
-                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), processCreationServiceURLs[indexOfPCS]);
+                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1] + ":10000/PCS");
                 PCS.createClient(username, clientURL, serverURL, scriptFilePath);
 
                 }

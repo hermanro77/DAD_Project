@@ -21,7 +21,7 @@ namespace CommonTypes
 
         public interface IMeetingServices
         {
-            void JoinMeeting(string userName);
+            void JoinMeeting(string userName, List<(string, DateTime)> dateLoc);
 
         }
 

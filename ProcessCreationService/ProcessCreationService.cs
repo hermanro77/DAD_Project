@@ -25,12 +25,12 @@ namespace ProcessCreationService
             {
                 using (Process ServerProcess = new Process())
                 {
-                    
-                    ServerProcess.StartInfo.FileName = "C:\\..\\Server\\bin\\Debug\\Server.exe";
-                    ServerProcess.StartInfo.Arguments = otherServerURL + " " + serverID + " " + URL + " " +
+                    ServerProcess.StartInfo.FileName = "..\\..\\..\\Server\\bin\\Debug\\Server.exe";
+                    ServerProcess.StartInfo.Arguments = "hello";
+                   /* ServerProcess.StartInfo.Arguments = otherServerURL + " " + serverID + " " + URL + " " +
                         max_faults.ToString() + " " +
                         min_delay.ToString() + " " + 
-                        max_delay.ToString();
+                        max_delay.ToString();*/
                     ServerProcess.Start();
                 }
             }
@@ -48,7 +48,7 @@ namespace ProcessCreationService
                 using (Process ClientProcess = new Process())
                 {
 
-                    ClientProcess.StartInfo.FileName = "Path to CLient.exe"; //Where is Cleint.exe?? not in debug file
+                    ClientProcess.StartInfo.FileName = "..\\..\\..\\Client\\bin\\Debug\\Client.exe";
                     ClientProcess.StartInfo.Arguments = username + " " + clientURL + " " + serverURL + " " + 
                         scriptFilePath;
                     ClientProcess.Start();
@@ -69,6 +69,11 @@ namespace ProcessCreationService
                 typeof(ProcessCreationService),
                 "PCS",
                 WellKnownObjectMode.Singleton);
+
+            ProcessCreationService pcs = new ProcessCreationService();
+            pcs.createServer("server1", "tcp://localhost:3000/server1", 0, 0, 0, "");
+
+            pcs.createClient("client2", "tcp://localhost:4000/client1", "tcp://localhost:3000/server1", "");
 
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
