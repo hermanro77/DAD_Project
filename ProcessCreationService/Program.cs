@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProcessCreationService
 {
-    class Program
+    class ProcessService
     {
         static void Main(string[] args)
         {

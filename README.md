@@ -14,4 +14,4 @@ call the client with its interface methods?
 ### Notes
 List is not serializable, use Array.
 Use gossip when distributing meeetings
-When client asks for available meetings (s)he should only get status on the meetings the client already know
+When client asks for available meetings (s)he should only get status on the meetings the client already kno

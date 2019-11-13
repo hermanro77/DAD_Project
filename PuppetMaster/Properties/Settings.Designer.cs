@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MeetingCalendar.Properties
+namespace PuppetMaster.Properties
 {
 
 
