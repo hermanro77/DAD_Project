@@ -8,7 +8,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
-    public class MeetingServices : MarshalByRefObject, IMeetingServices
+    public class MeetingServices : MarshalByRefObject, IMeetingServices, IEquatable<MeetingServices>
     {
         private String coordinatorUsername;
         private String topic;
@@ -32,15 +32,16 @@ namespace MeetingCalendar
         public int MinParticipants { get => minParticipants; }
         public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
-        public Boolean Closed { set => closed = true;  }
-        
+        public Boolean Closed { set => closed = true; }
+
         public bool IsInvited(string userName)
         {
             return invitees.Contains(userName);
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
-        public void AddParticipantToSlot((string, DateTime) slot, string part) {
+        public void AddParticipantToSlot((string, DateTime) slot, string part)
+        {
             if (!this.closed)
             {
                 this.participants[slot].Add(part);
@@ -54,5 +55,29 @@ namespace MeetingCalendar
                 this.AddParticipantToSlot(tuple, userName);
             }
         }
+
+        public bool Equals(MeetingServices otherMeeting)
+        {
+            if (otherMeeting is null) return false;
+            return this.topic == otherMeeting.Topic;
+        }
+        public override bool Equals(object obj) => Equals(obj as MeetingServices);
+        public override int GetHashCode() => (Topic).GetHashCode();
     }
+
+    //public class MeetingComparer : IEqualityComparer<MeetingServices>
+    //{
+    //    public bool Equals(MeetingServices x, MeetingServices y)
+    //    {
+    //        if (Object.ReferenceEquals(x, y)) return true;
+    //        if ((Object.ReferenceEquals(x,null)) || (Object.ReferenceEquals(y,null))) return false;
+    //        return (x.Topic == y.Topic);
+    //    }
+
+    //    public int GetHashCode(MeetingServices meeting)
+    //    {
+    //        if (Object.ReferenceEquals(meeting, null)) return 0;
+    //        return meeting.Topic == null ? 0 : meeting.Topic.GetHashCode();
+    //    }
+    //}
 }

@@ -207,12 +207,14 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
-        public List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient)
+        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            foreach (MeetingServices meeting in meetings)
+            // var intersectMeetings = meetingClientKnows.Select(i => ((MeetingServices)i).Topic).Intersect(meetings.Select(j => ((MeetingServices)j).Topic));
+            IEnumerable<IMeetingServices> intersectMeetings = meetingClientKnows.Intersect(meetings);
+            foreach (MeetingServices meeting in intersectMeetings)
             {
-                if (meeting.IsInvited(userName))
+                if (meeting.IsInvited(userName) )
                 {
                     availableMeetings.Add(meeting);
                 }
@@ -221,7 +223,7 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in servers)
                 {
-                    foreach(IMeetingServices meets in server.ListMeetings(userName, false))
+                    foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
                     {
                         availableMeetings.Add(meets);
                     }
