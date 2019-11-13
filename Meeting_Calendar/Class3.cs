@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PuppetMaster
+namespace Meeting_Calendar
 {
-    class Program
+    class Class3
     {
-        static void Main(string[] args)
-        {
-        }
     }
 }

@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ProcessCreationService
+namespace Meeting_Calendar
 {
-    class ProcessService
+    class Class2
     {
-        static void Main(string[] args)
-        {
-        }
     }
 }
