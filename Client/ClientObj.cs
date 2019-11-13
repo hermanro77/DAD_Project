@@ -27,6 +27,10 @@ namespace Client
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             tcp = new TcpChannel(Int32.Parse(endURL[0]));
+
+            Console.WriteLine("Client obj at: " + clientURL);
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
+            Console.WriteLine("Port number for client: " + endURL[0]);
             this.SetUpServer(clientURL, serverURL);
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
@@ -158,10 +162,13 @@ namespace Client
 
         private void SetUpServer(string cURL, string sURL)
         {
-            myServer = (IServerServices)Activator.GetObject(
+            Console.WriteLine("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH");
+            Console.WriteLine("cURL: " + cURL);
+            Console.WriteLine("sURL: " + sURL);
+            this.myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
-            myServer.NewClient(this.userName, cURL);
+            //myServer.NewClient(this.userName, cURL); 
         }
 
         public void PrintStatus()
@@ -171,6 +178,7 @@ namespace Client
         static void Main(string[] args)
         {
             new ClientObj(args[0], args[1], args[2], args[3]);
+            Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
         }
     }

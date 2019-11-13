@@ -26,11 +26,11 @@ namespace ProcessCreationService
                 using (Process ServerProcess = new Process())
                 {
                     ServerProcess.StartInfo.FileName = "..\\..\\..\\Server\\bin\\Debug\\Server.exe";
-                    ServerProcess.StartInfo.Arguments = "hello";
-                   /* ServerProcess.StartInfo.Arguments = otherServerURL + " " + serverID + " " + URL + " " +
+                    
+                    ServerProcess.StartInfo.Arguments = otherServerURL + " " + serverID + " " + URL + " " +
                         max_faults.ToString() + " " +
                         min_delay.ToString() + " " + 
-                        max_delay.ToString();*/
+                        max_delay.ToString();
                     ServerProcess.Start();
                 }
             }
@@ -71,9 +71,9 @@ namespace ProcessCreationService
                 WellKnownObjectMode.Singleton);
 
             ProcessCreationService pcs = new ProcessCreationService();
-            pcs.createServer("server1", "tcp://localhost:3000/server1", 0, 0, 0, "");
-
-            pcs.createClient("client2", "tcp://localhost:4000/client1", "tcp://localhost:3000/server1", "");
+            pcs.createServer("server1", "tcp://localhost:50000/server1", 0, 0, 0, "scriptFilePath");
+            
+            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
 
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
