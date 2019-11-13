@@ -232,8 +232,12 @@ namespace MeetingCalendar
         }
         static void Main(string[] args)
         {
+           
+            Console.WriteLine("Dette er args: " + args);
             new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
+            Console.WriteLine("du er kommet fram til main");
+            Console.ReadLine();
         }
     }
 
