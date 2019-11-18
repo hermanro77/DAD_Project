@@ -28,15 +28,16 @@ namespace MeetingCalendar
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
             this.serverURLs = new List<string>(); //use otherServerURL to get all servers and add them to serverURLs list if this is not the first server to be created
             this.SetupServers();
+        }
+
+        private void initialize(string serverURL, string serverID, ServerServices serverObj)
+        {
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            channel = new TcpChannel(Int32.Parse(endURL[0]));
-
+            Console.WriteLine("Server port when server initialized:" + endURL[0]);
+            this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ServerServices),
-                serverID,
-                WellKnownObjectMode.Singleton);
+            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -116,7 +117,7 @@ namespace MeetingCalendar
             }
             bestroom.BookedDates.Add(bestLocAndDate.Item2); //books room for the date in bestLocAndDate
             meeting.Closed = true; 
-            //this.meetings.Remove(meeting); Remove meeting after close?
+            //this.meetings.Remove(meeting); Teacher said: "do not remove meeting after close"
             return true;
         }
 
@@ -166,7 +167,6 @@ namespace MeetingCalendar
                     userURL);
                     clients.Add(uname, cli);
                 }
-                
             }
         }
         public void AddRoom(string location, int capacity, string roomName)
@@ -233,10 +233,12 @@ namespace MeetingCalendar
             return availableMeetings;
         }
         static void Main(string[] args)
-        {
-            new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
+        {   
+            ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
+            server.initialize(args[2], args[1], server);
+            Console.WriteLine("<Enter> to exit...");
+            Console.ReadLine();
         }
     }
-
 }

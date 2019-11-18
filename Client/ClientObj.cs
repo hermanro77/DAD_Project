@@ -1,5 +1,4 @@
-﻿
-using MeetingCalendar;
+﻿using MeetingCalendar;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,13 +28,17 @@ namespace Client
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             tcp = new TcpChannel(Int32.Parse(endURL[0]));
-            this.SetUpServer(clientURL, serverURL);
+
+            Console.WriteLine("Client obj at: " + clientURL);
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
+           
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-            this.RunScript(scriptFileName);
+            this.SetUpServer(clientURL, serverURL);
+            // this.RunScript(scriptFileName);
         }
 
         public void RunScript(string scriptFileName)
@@ -161,25 +164,22 @@ namespace Client
 
         private void SetUpServer(string cURL, string sURL)
         {
-            myServer = (IServerServices)Activator.GetObject(
+            this.myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
-            myServer.NewClient(this.userName, cURL);
+            
+            myServer.NewClient(this.userName, cURL); 
         }
 
         public void PrintStatus()
         {
             Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
         }
-
-        public void PrintStatus()
-        {
-            throw new NotImplementedException();
-        }
-
         static void Main(string[] args)
         {
-
+            new ClientObj(args[0], args[1], args[2], args[3]);
+            Console.WriteLine("<enter> to exit...");
+            Console.ReadLine();
         }
     }
 }
