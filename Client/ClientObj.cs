@@ -1,11 +1,13 @@
 ﻿using MeetingCalendar;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +29,12 @@ namespace Client
             this.userName = userName;
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            tcp = new TcpChannel(Int32.Parse(endURL[0]));
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            //props["port"] = 8085;
+            props["port"] = Int32.Parse(endURL[0]);
+            tcp = new TcpChannel(props, null, provider);
 
             Console.WriteLine("Client obj at: " + clientURL);
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
@@ -147,10 +154,14 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
+                meetingsClientKnows.Add(new MeetingServices(this.userName, "Styrepils", 2, null, null));
+                IMeetingServices[] myMeets = meetingsClientKnows.ToArray<IMeetingServices>();
+                string[] mystrings = { "Pedro", "Juan", "Hermano" };
+                IMeetingServices[] availableMeetings = myServer.ListMeetings(userName, myMeets, true);
                 Console.WriteLine(availableMeetings);
             } catch (Exception e)
             {
+                Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
                 this.changeServer();
             }
@@ -177,8 +188,9 @@ namespace Client
         }
         static void Main(string[] args)
         {
-            new ClientObj(args[0], args[1], args[2], args[3]);
+            ClientObj clo = new ClientObj(args[0], args[1], args[2], args[3]);
             Console.WriteLine("<enter> to exit...");
+            clo.ListMeetings();
             Console.ReadLine();
         }
     }

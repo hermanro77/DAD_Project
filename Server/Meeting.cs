@@ -8,6 +8,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
+    [Serializable]
     public class MeetingServices : MarshalByRefObject, IMeetingServices, IEquatable<MeetingServices>
     {
         private String coordinatorUsername;

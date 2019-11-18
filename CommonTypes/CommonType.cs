@@ -35,7 +35,7 @@ namespace CommonTypes
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
 
-            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
+            IMeetingServices[] ListMeetings(string userName, IMeetingServices[] meetingClientKnows, bool requesterIsClient);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);

@@ -1,10 +1,12 @@
 ﻿using Server;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using static CommonTypes.CommonType;
 
@@ -35,7 +37,12 @@ namespace MeetingCalendar
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             Console.WriteLine("Server port when server initialized:" + endURL[0]);
-            this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
@@ -207,30 +214,44 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
-        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
+        public IMeetingServices[] ListMeetings(string userName, IMeetingServices[] meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
             // var intersectMeetings = meetingClientKnows.Select(i => ((MeetingServices)i).Topic).Intersect(meetings.Select(j => ((MeetingServices)j).Topic));
-            IEnumerable<IMeetingServices> intersectMeetings = meetingClientKnows.Intersect(meetings);
-            foreach (MeetingServices meeting in intersectMeetings)
+            try
             {
-                if (meeting.IsInvited(userName) )
+                Console.WriteLine(userName);
+                foreach (IMeetingServices meet in meetingClientKnows)
                 {
-                    availableMeetings.Add(meeting);
+                    Console.WriteLine(((MeetingServices)meet).Topic);
                 }
-            }
-            if (requesterIsClient)
+                Console.WriteLine(meetingClientKnows);
+                Console.WriteLine(requesterIsClient);
+            } catch (Exception e)
             {
-                foreach (IServerServices server in servers)
-                {
-                    foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
-                    {
-                        availableMeetings.Add(meets);
-                    }
+                Console.WriteLine(e);
+            }
+            //List<IMeetingServices> clientMeetings = meetingClientKnows.ToList<IMeetingServices>();
+            // IEnumerable<IMeetingServices> intersectMeetings = clientMeetings.Intersect(meetings);
+            //foreach (MeetingServices meeting in intersectMeetings)
+            //{
+            //    if (meeting.IsInvited(userName) )
+            //    {
+            //        availableMeetings.Add(meeting);
+            //    }
+            //}
+            //if (requesterIsClient)
+            //{
+            //    foreach (IServerServices server in servers)
+            //    {
+            //        foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+            //        {
+            //            availableMeetings.Add(meets);
+            //        }
 
-                }
-            }
-            return availableMeetings;
+            //    }
+            //}
+            return availableMeetings.ToArray<IMeetingServices>();
         }
         static void Main(string[] args)
         {   
