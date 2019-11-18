@@ -58,6 +58,10 @@ namespace MeetingCalendar
         {
             return this.otherServerURLs;
         }
+        public int getMaxFaults()
+        {
+            return this.max_faults;
+        }
 
         private void setAllOtherServers(string otherServerURL)
         {
@@ -92,6 +96,7 @@ namespace MeetingCalendar
         }
         public void AddNewServer(string serverURL)
         {
+            Console.WriteLine("Adding " + serverURL + " to " + this.getServerURL());
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);

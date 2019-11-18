@@ -16,10 +16,11 @@ namespace Client
     public class ClientObj : MarshalByRefObject, IClientServices
     {
         private List<string> myCreatedMeetings = new List<string>();
-        private List<IMeetingServices> meetingsClientKnowsAbout = new List<IMeetingServices>();
+        private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
-        private List<string> otherServerURLs;
-        
+        private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> otherServers = new List<IServerServices>();
+
         ServerServices myServer;
         TcpChannel tcp;
 
@@ -48,7 +49,48 @@ namespace Client
                 serverURL);
             myServer.NewClient(this.userName, clientURL);
 
+            //Set up other servers
+            this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
+
             //this.RunScript(scriptFileName);
+        }
+
+        private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
+        {
+            List<string> servers = server.getOtherServerURLs();
+            List<IServerServices> serverInstances = server.Servers;
+           
+            Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
+            Console.WriteLine("There are [" + serverInstances.Count + "] serverInstances in the system other than " + server);
+
+            if (servers.Count < 1) //No other servers yet
+            {
+                return; 
+            }
+            if (servers.Count >= maxFaults)
+            {
+                for (int i = 0; i < maxFaults; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
         }
 
         public void RunScript(string scriptFileName)
@@ -157,7 +199,7 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnowsAbout, true);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
                 Console.WriteLine(availableMeetings);
             } catch (Exception e)
             {
@@ -178,7 +220,12 @@ namespace Client
         }
         static void Main(string[] args)
         {
-            new ClientObj(args[0], args[1], args[2], args[3]);
+            ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
+            foreach (string s in co.otherServerURLs)
+            {
+                Console.WriteLine(s);
+            }
+            
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
         }
