@@ -78,14 +78,6 @@ namespace ProcessCreationService
 
             pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50012/server2", "scriptFilePath");
             
-            
-            //IServerServices server1 = (IServerServices)Activator.GetObject(typeof(IServerServices),
-            //    "tcp://localhost:50013/server3");
-            //foreach(string s in server1.getOtherServerURLs())
-            //{
-            //    Console.WriteLine(s);
-            //}
-            
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
 

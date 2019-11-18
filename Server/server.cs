@@ -290,10 +290,7 @@ namespace MeetingCalendar
             ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
             server.initialize(args[2], args[1], server);
-            foreach (string s in server.otherServerURLs)
-            {
-                Console.WriteLine(s);
-            }
+
             Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
         }
