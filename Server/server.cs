@@ -30,17 +30,18 @@ namespace MeetingCalendar
             this.SetupServers();
         }
 
-        private void initialize(string serverURL, string serverID)
+        private void initialize(string serverURL, string serverID, ServerServices serverObj)
         {
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             Console.WriteLine("Server port when server initialized:" + endURL[0]);
             this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             ChannelServices.RegisterChannel(channel, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ServerServices),
-                serverID,
-                WellKnownObjectMode.Singleton);
+            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
+            //RemotingConfiguration.RegisterWellKnownServiceType(
+            //    typeof(ServerServices),
+            //    serverID,
+            //    WellKnownObjectMode.Singleton);
         }
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -120,7 +121,7 @@ namespace MeetingCalendar
             }
             bestroom.BookedDates.Add(bestLocAndDate.Item2); //books room for the date in bestLocAndDate
             meeting.Closed = true; 
-            //this.meetings.Remove(meeting); Remove meeting after close?
+            //this.meetings.Remove(meeting); Teacher said: "do not remove meeting after close"
             return true;
         }
 
@@ -161,17 +162,17 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
-            lock (clients)
-            {
+            //lock (clients)
+            //{
 
                 if (!clients.ContainsKey(uname))
                 {
-                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                    userURL);
-                    clients.Add(uname, cli);
+                    //IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    //userURL);
+                    //clients.Add(uname, cli);
                 }
                 
-            }
+            //}
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -245,7 +246,7 @@ namespace MeetingCalendar
             
             ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
-            server.initialize(args[2], args[1]);
+            server.initialize(args[2], args[1], server);
             Console.WriteLine("du er kommet fram til main. Enter to exit");
             Console.ReadLine();
         }

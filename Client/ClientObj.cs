@@ -31,13 +31,14 @@ namespace Client
             Console.WriteLine("Client obj at: " + clientURL);
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             Console.WriteLine("Port number for client: " + endURL[0]);
-            this.SetUpServer(clientURL, serverURL);
+           
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-           // this.RunScript(scriptFileName);
+            this.SetUpServer(clientURL, serverURL);
+            // this.RunScript(scriptFileName);
         }
 
         public void RunScript(string scriptFileName)
@@ -168,7 +169,8 @@ namespace Client
             this.myServer = (IServerServices)Activator.GetObject(
                 typeof(IServerServices),
                 sURL);
-            //myServer.NewClient(this.userName, cURL); 
+            
+            myServer.NewClient(this.userName, cURL); 
         }
 
         public void PrintStatus()
@@ -177,6 +179,7 @@ namespace Client
         }
         static void Main(string[] args)
         {
+            
             new ClientObj(args[0], args[1], args[2], args[3]);
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
