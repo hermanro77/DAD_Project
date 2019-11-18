@@ -23,6 +23,8 @@ namespace CommonTypes
         {
             void JoinMeeting(string userName, List<(string, DateTime)> dateLoc);
 
+            // bool Eqauls(IMeetingServices meeting);
+
         }
 
         public interface IServerServices
@@ -33,7 +35,7 @@ namespace CommonTypes
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
 
-            List<IMeetingServices> ListMeetings(string userName, bool requesterIsClient);
+            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);

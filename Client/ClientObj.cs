@@ -16,6 +16,7 @@ namespace Client
     public class ClientObj : MarshalByRefObject, IClientServices
     {
         private List<string> myCreatedMeetings = new List<string>();
+        private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private string serverURL;
         IServerServices myServer;
@@ -109,6 +110,7 @@ namespace Client
             }
             catch (Exception e)
             {
+                Console.WriteLine(e);
                 this.changeServer();
             }
             // Create new meeting
@@ -145,7 +147,7 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, true);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
                 Console.WriteLine(availableMeetings);
             } catch (Exception e)
             {
