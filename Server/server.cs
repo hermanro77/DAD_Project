@@ -38,10 +38,6 @@ namespace MeetingCalendar
             this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
-            //RemotingConfiguration.RegisterWellKnownServiceType(
-            //    typeof(ServerServices),
-            //    serverID,
-            //    WellKnownObjectMode.Singleton);
         }
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -162,17 +158,16 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
-            //lock (clients)
-            //{
+            lock (clients)
+            {
 
                 if (!clients.ContainsKey(uname))
                 {
-                    //IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                    //userURL);
-                    //clients.Add(uname, cli);
+                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    userURL);
+                    clients.Add(uname, cli);
                 }
-                
-            //}
+            }
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -236,20 +231,12 @@ namespace MeetingCalendar
             return availableMeetings;
         }
         static void Main(string[] args)
-        {
-           
-            Console.WriteLine("Dette er args: " + args + " lengde: " + args.Length);
-            foreach(var arg in args)
-            {
-                Console.WriteLine(arg);
-            }
-            
+        {   
             ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
             server.initialize(args[2], args[1], server);
-            Console.WriteLine("du er kommet fram til main. Enter to exit");
+            Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
         }
     }
-
 }
