@@ -40,6 +40,11 @@ namespace CommonTypes
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);
             void PrintStatus();
+            List<IMeetingServices> getMeetings();
+            string getServerURL();
+            List<string> getOtherServerURLs();
+
+
         }
     }
 }

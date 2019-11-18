@@ -1,4 +1,5 @@
-﻿using Server;
+﻿using CommonTypes;
+using Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +14,15 @@ namespace MeetingCalendar
     public class ServerServices : MarshalByRefObject, IServerServices
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
-        private List<IServerServices> servers;
-        private List<string> serverURLs;
-        private List<IMeetingServices> meetings;
+        private List<IServerServices> otherServers = new List<IServerServices>();
+        private List<string> otherServerURLs = new List<string>();
+        private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
+        private string serverURL;
+        private string serverID;
+        private int max_faults;
+
         TcpChannel channel;
         private Random rnd = new Random();
 
@@ -25,9 +30,71 @@ namespace MeetingCalendar
         public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
             int minWait, int maxWait)
         {
+            this.serverID = serverID;
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURLs = new List<string>(); //use otherServerURL to get all servers and add them to serverURLs list if this is not the first server to be created
-            this.SetupServers();
+            this.serverURL = serverURL;
+            this.max_faults = max_faults;
+            if (otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
+            {
+                setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
+            }
+            
+        }
+
+        public List<IMeetingServices> getMeetings()
+        {
+            return this.meetings;
+        }
+        public List<IServerServices> Servers 
+        { 
+            get { return otherServers; }  
+        }
+        public string getServerURL()
+        {
+            return this.serverURL;
+        }
+
+        public List<string> getOtherServerURLs()
+        {
+            return this.otherServerURLs;
+        }
+
+        private void setAllOtherServers(string otherServerURL)
+        {
+            if (this.getServerURL() != otherServerURL)
+            {
+                this.AddNewServer(otherServerURL);
+            }
+            IServerServices serverFromURL = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                otherServerURL);
+            
+            try
+            {
+                foreach (string serverURL in serverFromURL.getOtherServerURLs())
+                {
+                    if (serverURL != null && !otherServerURLs.Contains(serverURL))
+                    {
+                        if (this.getServerURL() != serverURL)
+                        {
+                            this.AddNewServer(serverURL);
+                        }
+                        
+                        IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                        serverURL);
+                        server.AddNewServer(this.getServerURL()); //adds this new server to the remote server
+                    }
+                }
+            }catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            serverFromURL.AddNewServer(this.getServerURL());
+        }
+        public void AddNewServer(string serverURL)
+        {
+            otherServerURLs.Add(serverURL);
+            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
+            otherServers.Add(server);
         }
 
         private void initialize(string serverURL, string serverID, ServerServices serverObj)
@@ -36,7 +103,7 @@ namespace MeetingCalendar
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             Console.WriteLine("Server port when server initialized:" + endURL[0]);
             this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            ChannelServices.RegisterChannel(channel, false);
+            //ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
@@ -55,12 +122,12 @@ namespace MeetingCalendar
                 }
                 
             }
-            //checks for meeting in other services if meeting not in server (multiple servers solution)
+            //checks for meeting in other servers if meeting not in this server (multiple servers solution)
             if (!foundMeeting)
             {
-                foreach (ServerServices server in servers)
+                foreach (IServerServices server in otherServers)
                 {
-                    foreach (MeetingServices meeting in server.meetings)
+                    foreach (MeetingServices meeting in server.getMeetings())
                     {
                         if (meeting.Topic == meetingTopic) //finds the unique meeting
                         {
@@ -72,7 +139,7 @@ namespace MeetingCalendar
             }
             if (!foundMeeting || !foundBestDateAndLocation)
             {
-                return false; //could not find meeting or it did not exist a date and location that fitted
+                return false; //could not find unique meeting or it did not exist a date and location that fitted
             }
             return true; //closed meeting
 
@@ -121,21 +188,6 @@ namespace MeetingCalendar
             return true;
         }
 
-        private void SetupServers()
-        {
-            foreach (string url in serverURLs)
-            {
-                IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices),
-                url);
-                servers.Add(server);
-            }
-        }
-
-        public void AddNewServer(string serverURL)
-        {
-            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
-            servers.Add(server);
-        }
         
         private Room getSmallestRoom(List<Room> availableRooms, int numParticipants)
         {
@@ -195,7 +247,7 @@ namespace MeetingCalendar
             }
             if (requesterIsClient)
             {
-                foreach (ServerServices meetingServer in servers)
+                foreach (IServerServices meetingServer in otherServers)
                 {
                     meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
                 }
@@ -221,7 +273,7 @@ namespace MeetingCalendar
             }
             if (requesterIsClient)
             {
-                foreach (IServerServices server in servers)
+                foreach (IServerServices server in otherServers)
                 {
                     foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
                     {
@@ -233,10 +285,15 @@ namespace MeetingCalendar
             return availableMeetings;
         }
         static void Main(string[] args)
-        {   
+        {
+            
             ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
             server.initialize(args[2], args[1], server);
+            foreach (string s in server.otherServerURLs)
+            {
+                Console.WriteLine(s);
+            }
             Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
         }

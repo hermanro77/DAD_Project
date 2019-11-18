@@ -71,10 +71,21 @@ namespace ProcessCreationService
                 WellKnownObjectMode.Singleton);
 
             ProcessCreationService pcs = new ProcessCreationService();
-            pcs.createServer("server1", "tcp://localhost:50000/server1", 0, 0, 0, "scriptFilePath");
-            
-            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            pcs.createServer("server1", "tcp://localhost:50000/server1", 0, 0, 0, "null");
+            pcs.createServer("server2", "tcp://localhost:50012/server2", 0, 0, 0, "tcp://localhost:50000/server1");
+            pcs.createServer("server3", "tcp://localhost:50013/server3", 0, 0, 0, "tcp://localhost:50012/server2");
 
+
+            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50012/server2", "scriptFilePath");
+            
+            
+            //IServerServices server1 = (IServerServices)Activator.GetObject(typeof(IServerServices),
+            //    "tcp://localhost:50013/server3");
+            //foreach(string s in server1.getOtherServerURLs())
+            //{
+            //    Console.WriteLine(s);
+            //}
+            
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
 

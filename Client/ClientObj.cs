@@ -16,29 +16,39 @@ namespace Client
     public class ClientObj : MarshalByRefObject, IClientServices
     {
         private List<string> myCreatedMeetings = new List<string>();
-        private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
+        private List<IMeetingServices> meetingsClientKnowsAbout = new List<IMeetingServices>();
         private string userName;
-        private string serverURL;
-        IServerServices myServer;
+        private List<string> otherServerURLs;
+        
+        ServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
         {
+
             this.userName = userName;
+            
+            //create tcp channel
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             tcp = new TcpChannel(Int32.Parse(endURL[0]));
 
+            //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
-            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
-           
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-            this.SetUpServer(clientURL, serverURL);
-            // this.RunScript(scriptFileName);
+
+            //Setup my server
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
+            this.myServer = (ServerServices)Activator.GetObject(
+                typeof(ServerServices),
+                serverURL);
+            myServer.NewClient(this.userName, clientURL);
+
+            //this.RunScript(scriptFileName);
         }
 
         public void RunScript(string scriptFileName)
@@ -147,7 +157,7 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnowsAbout, true);
                 Console.WriteLine(availableMeetings);
             } catch (Exception e)
             {
@@ -162,18 +172,9 @@ namespace Client
             // Find a new server
         }
 
-        private void SetUpServer(string cURL, string sURL)
-        {
-            this.myServer = (IServerServices)Activator.GetObject(
-                typeof(IServerServices),
-                sURL);
-            
-            myServer.NewClient(this.userName, cURL); 
-        }
-
         public void PrintStatus()
         {
-            Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
+            Console.WriteLine("Client: " + userName + " My server is " + myServer + ".");
         }
         static void Main(string[] args)
         {
