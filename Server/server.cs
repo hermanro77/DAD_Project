@@ -171,8 +171,8 @@ namespace MeetingCalendar
                 }
             }
         }
-        //One random client from each server and every client on the same server
-        public string[] getSampleOfClients()
+    
+        public string[] getSampleClientsFromOtherServers()
         {
             List<string> samples = new List<string>();
          
@@ -180,7 +180,6 @@ namespace MeetingCalendar
             {
                 samples.Add(server.getRandomClientURL());       
             }
-            samples = samples.Concat(clientURLs).ToList();
             return samples.ToArray();
         }
         //maa denne være commontype siden forskjellige servere skal kalle metoden paa hverandre
@@ -191,7 +190,7 @@ namespace MeetingCalendar
             return clientURLs[randomIndex];
         }
 
-        public string[] getClients() {
+        public string[] getOwnClients() {
 
             return clientURLs.ToArray();
         }

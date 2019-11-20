@@ -122,11 +122,13 @@ namespace Client
 
         private List<string> getArrayOfClientURLs()
         {
-            List<string> sample = myServer.getSampleOfClients().ToList();
-            if (sample.Contains(this.myURL)) {
-                sample.Remove(this.myURL); 
+            List<string> sample = myServer.getSampleClientsFromOtherServers().ToList();
+            List<string> clientUnderSameServer = myServer.getClients().ToList();
+            if (clientUnderSameServer.Contains(this.myURL)) {
+                clientUnderSameServer.Remove(this.myURL); 
             }
-            return sample;
+
+            return sample.Concat(clientUnderSameServer).ToList();
         }
 
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
@@ -166,7 +168,6 @@ namespace Client
                 Console.WriteLine(e);
                 this.changeServer();
             }
-            
         }
 
         private void changeServer()
