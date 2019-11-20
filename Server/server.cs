@@ -171,8 +171,8 @@ namespace MeetingCalendar
                 }
             }
         }
-
-        public string[] getSampleClientsFromServers()
+        //One random client from each server and every client on the same server
+        public string[] getSampleOfClients()
         {
             List<string> samples = new List<string>();
          
@@ -180,16 +180,20 @@ namespace MeetingCalendar
             {
                 samples.Add(server.getRandomClientURL());       
             }
+            samples = samples.Concat(clientURLs).ToList();
             return samples.ToArray();
-
-
         }
-
+        //maa denne være commontype siden forskjellige servere skal kalle metoden paa hverandre
         public string getRandomClientURL()
         {
             Random r = new Random();
             int randomIndex = r.Next(0, clients.Count);
             return clientURLs[randomIndex];
+        }
+
+        public string[] getClients() {
+
+            return clientURLs.ToArray();
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -254,11 +258,6 @@ namespace MeetingCalendar
                 }
             }
             return availableMeetings;
-        }
-
-        public string[] getSampleClientsFromServers()
-        {
-
         }
         static void Main(string[] args)
         {   

@@ -19,12 +19,14 @@ namespace Client
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private string serverURL;
+        private string myURL;
         IServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
         {
             this.userName = userName;
+            this.myURL = clientURL;
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             tcp = new TcpChannel(Int32.Parse(endURL[0]));
@@ -115,6 +117,16 @@ namespace Client
             }
             // Create new meeting
             // USE TRY-CATCH
+        }
+
+        private List<string> getArrayOfClientURLs()
+        {
+            List<string> sample = myServer.getSampleOfClients().ToList();
+
+            if (sample.Contains(this.myURL)) {
+                sample.Remove(this.myURL); 
+            }
+            return sample;
         }
 
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
