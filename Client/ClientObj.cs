@@ -119,6 +119,7 @@ namespace Client
             // USE TRY-CATCH
         }
 
+
         private List<string> getArrayOfClientURLs()
         {
             List<string> sample = myServer.getSampleOfClients().ToList();
