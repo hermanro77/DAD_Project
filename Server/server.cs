@@ -12,7 +12,8 @@ namespace MeetingCalendar
 {
     public class ServerServices : MarshalByRefObject, IServerServices
     {
-        private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
+        private Dictionary<string, IClientServices> clients = new Dictionary<string,IClientServices>();
+        private List<string> clientURLs = new List<string>();
         private List<IServerServices> servers;
         private List<string> serverURLs;
         private List<IMeetingServices> meetings;
@@ -166,8 +167,29 @@ namespace MeetingCalendar
                     IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
                     userURL);
                     clients.Add(uname, cli);
+                    clientURLs.Add(userURL);
                 }
             }
+        }
+
+        public string[] getSampleClientsFromServers()
+        {
+            List<string> samples = new List<string>();
+         
+            foreach (ServerServices server in servers)
+            {
+                samples.Add(server.getRandomClientURL());       
+            }
+            return samples.ToArray();
+
+
+        }
+
+        public string getRandomClientURL()
+        {
+            Random r = new Random();
+            int randomIndex = r.Next(0, clients.Count);
+            return clientURLs[randomIndex];
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -207,6 +229,7 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
+
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
@@ -231,6 +254,11 @@ namespace MeetingCalendar
                 }
             }
             return availableMeetings;
+        }
+
+        public string[] getSampleClientsFromServers()
+        {
+
         }
         static void Main(string[] args)
         {   
