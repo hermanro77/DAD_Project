@@ -117,6 +117,14 @@ namespace Client
             // USE TRY-CATCH
         }
 
+        private string[] getArrayOfClients()
+        {
+            string[] allKnownClients = string[]
+            string[] otherClients = myServer.getSampleClientsFromOtherServers();
+            string[] clientsFromSameServer = myServer.getClients();
+            return otherClients.
+        }
+
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
         {
             try
