@@ -123,7 +123,6 @@ namespace Client
         private List<string> getArrayOfClientURLs()
         {
             List<string> sample = myServer.getSampleOfClients().ToList();
-
             if (sample.Contains(this.myURL)) {
                 sample.Remove(this.myURL); 
             }
