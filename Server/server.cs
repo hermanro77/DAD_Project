@@ -17,7 +17,7 @@ namespace MeetingCalendar
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> servers;
         private List<string> serverURLs;
-        private List<IMeetingServices> meetings;
+        private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
         TcpChannel channel;
@@ -217,7 +217,6 @@ namespace MeetingCalendar
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            Console.WriteLine("Climeet");
             IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
             foreach (MeetingServices meeting in intersectMeetings)
             {
@@ -236,7 +235,6 @@ namespace MeetingCalendar
                     }
                 }
             }
-            //return availableMeetings.ToArray<IMeetingServices>();
             return availableMeetings;
         }
         static void Main(string[] args)

@@ -154,10 +154,11 @@ namespace Client
         {
             try
             {
-                //IMeetingServices[] myMeets = meetingsClientKnows.ToArray<IMeetingServices>();
-                //IMeetingServices[] availableMeetings = myServer.ListMeetings(userName, myMeets, true);
                 List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
-                Console.WriteLine(availableMeetings);
+                foreach (MeetingServices meeting in availableMeetings)
+                {
+                    meeting.printStatus();
+                }
             } catch (Exception e)
             {
                 Console.WriteLine("Could not list meetings...!");

@@ -37,7 +37,11 @@ namespace MeetingCalendar
 
         public bool IsInvited(string userName)
         {
-            return invitees.Contains(userName);
+            if (invitees == null)
+            {
+                return true;
+            }
+            return invitees.Contains(userName) ;
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
@@ -55,6 +59,19 @@ namespace MeetingCalendar
             {
                 this.AddParticipantToSlot(tuple, userName);
             }
+        }
+
+        public void printStatus()
+        {
+            Console.WriteLine("Meeting topic: " + topic);
+            Console.WriteLine("Meeting closed: " + closed);
+            Console.WriteLine("Possible places and dates: ");
+            foreach (KeyValuePair<(string, DateTime), List<string>> probMeeting in participants)
+            {
+                Console.WriteLine("Location: " + probMeeting.Key.Item1 + ", Date: " + probMeeting.Key.Item2 +
+                    ", number of people who can attend at this date and place: " + probMeeting.Value.Count);
+            }
+            Console.WriteLine("Coordinator of meeting: " + coordinatorUsername);
         }
 
         public override bool Equals(object obj) => Equals(obj as MeetingServices);
