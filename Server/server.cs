@@ -190,9 +190,9 @@ namespace MeetingCalendar
             return clientURLs[randomIndex];
         }
 
-        public string[] getOwnClients() {
+        public List<string> getOwnClients() {
 
-            return clientURLs.ToArray();
+            return clientURLs;
         }
         public void AddRoom(string location, int capacity, string roomName)
         {

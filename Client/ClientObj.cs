@@ -120,10 +120,10 @@ namespace Client
         }
 
 
-        private List<string> getArrayOfClientURLs()
+        private List<string> getListOfClientURLs()
         {
-            List<string> sample = myServer.getSampleClientsFromOtherServers().ToList();
-            List<string> clientUnderSameServer = myServer.getClients().ToList();
+            List<string> sample = myServer.getSampleClientsFromOtherServers();
+            List<string> clientUnderSameServer = myServer.getClients();
             if (clientUnderSameServer.Contains(this.myURL)) {
                 clientUnderSameServer.Remove(this.myURL); 
             }
