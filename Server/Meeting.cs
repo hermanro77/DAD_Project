@@ -74,7 +74,7 @@ namespace MeetingCalendar
             Console.WriteLine("Coordinator of meeting: " + coordinatorUsername);
         }
 
-        public override bool Equals(object obj) => Equals(obj as MeetingServices);
+        public override bool Equals(object obj) => Equals(obj as IMeetingServices);
         public override int GetHashCode() => (Topic).GetHashCode();
 
         public bool Eqauls(IMeetingServices meeting)
@@ -83,26 +83,10 @@ namespace MeetingCalendar
             return this.topic == ((MeetingServices)meeting).Topic;
         }
 
-        public bool Equals(MeetingServices other)
-        {
-            if (other is null) return false;
-            return this.topic == other.Topic;
-        }
+        //public bool Equals(MeetingServices other)
+        //{
+        //    if (other is null) return false;
+        //    return this.topic == other.Topic;
+        //}
     }
-
-    //public class MeetingComparer : IEqualityComparer<MeetingServices>
-    //{
-    //    public bool Equals(MeetingServices x, MeetingServices y)
-    //    {
-    //        if (Object.ReferenceEquals(x, y)) return true;
-    //        if ((Object.ReferenceEquals(x,null)) || (Object.ReferenceEquals(y,null))) return false;
-    //        return (x.Topic == y.Topic);
-    //    }
-
-    //    public int GetHashCode(MeetingServices meeting)
-    //    {
-    //        if (Object.ReferenceEquals(meeting, null)) return 0;
-    //        return meeting.Topic == null ? 0 : meeting.Topic.GetHashCode();
-    //    }
-    //}
 }
