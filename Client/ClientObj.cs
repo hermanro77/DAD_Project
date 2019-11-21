@@ -41,6 +41,8 @@ namespace Client
                 WellKnownObjectMode.Singleton);
             this.SetUpServer(clientURL, serverURL);
             // this.RunScript(scriptFileName);
+
+            this.createMeeting("mandagmote", 2, null, null);
         }
 
         public void RunScript(string scriptFileName)
@@ -109,6 +111,14 @@ namespace Client
             IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 myServer.NewMeetingProposal(meetingProposal);
 
+                //Dersom motet skal sendes til alle, uten gjesteliste
+                if (invitees == null)
+                {
+                 informOtherClients(meetingProposal, getSampleClients(), true);
+                 informOtherClients(meetingProposal, getClientsInSameHub(), false);
+                }
+               
+
             }
             catch (Exception e)
             {
@@ -119,15 +129,67 @@ namespace Client
             // USE TRY-CATCH
         }
 
-
-        private List<string> getListOfClientURLs()
+        private void informOtherClients(IMeetingServices meetingProposal, List<string> clientURLs, bool forwardMeeting)
         {
-            List<string> sample = myServer.getSampleClientsFromOtherServers();
-            List<string> clientsFromSameServer = myServer.getClients();
-            if (clientsFromSameServer.Contains(this.myURL)) {
-                clientsFromSameServer.Remove(this.myURL); 
+            List<IClientServices> clients = new List<IClientServices>();
+            foreach (string URL in clientURLs){
+                clients.Add((IClientServices)Activator.GetObject(
+                typeof(IClientServices),
+                URL));
             }
-            return sample.Concat(clientsFromSameServer).ToList();
+            foreach (IClientServices client in clients)
+            {
+                client.receiveNewMeeting(meetingProposal, forwardMeeting);
+            }
+        }
+
+        public void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting)
+        {
+            meetingsClientKnows.Add(meetingProposal);
+            Console.WriteLine("Meetingproposal reveived");
+            if (forwardMeeting)
+            {
+                try
+                {
+                    List<string> clientsFromSameServer = myServer.getOwnClients();
+                    informOtherClients(meetingProposal, clientsFromSameServer, false);
+                }
+                catch (Exception e)
+                {
+                    this.changeServer();
+                }
+            }
+        }
+
+        private List<string> getClientsInSameHub()
+        {
+            try
+            {
+               List<string> clientsInSameHub = myServer.getOwnClients();
+                if (clientsInSameHub.Contains(this.myURL))
+                {
+                    clientsInSameHub.Remove(this.myURL);
+                }
+                return clientsInSameHub;
+            }
+            catch(Exception e)
+            {
+                this.changeServer();
+                Console.WriteLine("Failed when getting clients from same hub. Error message: " + e);
+            }
+            return null;
+        }
+        private List<string> getSampleClients()
+        {
+            try
+            {
+                List<string> sample = myServer.getSampleClientsFromOtherServers();
+            }catch (Exception e)
+            {
+                this.changeServer();
+                Console.WriteLine("Failed while getting clients from other servers. Error message: " + e);
+            }
+            return null;
         }
 
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
