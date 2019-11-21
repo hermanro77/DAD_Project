@@ -8,6 +8,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
+    [Serializable]
     public class MeetingServices : MarshalByRefObject, IMeetingServices, IEquatable<MeetingServices>
     {
         private String coordinatorUsername;
@@ -34,9 +35,17 @@ namespace MeetingCalendar
         public List<(string, DateTime)> Slots { get => locDateOptions; }
         public Boolean Closed { set => closed = true; }
 
+        public string getTopic()
+        {
+            return this.Topic;
+        }
         public bool IsInvited(string userName)
         {
-            return invitees.Contains(userName);
+            if (invitees == null)
+            {
+                return true;
+            }
+            return invitees.Contains(userName) ;
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
@@ -56,28 +65,31 @@ namespace MeetingCalendar
             }
         }
 
-        public bool Equals(MeetingServices otherMeeting)
+        public void printStatus()
         {
-            if (otherMeeting is null) return false;
-            return this.topic == otherMeeting.Topic;
+            Console.WriteLine("Meeting topic: " + topic);
+            Console.WriteLine("Meeting closed: " + closed);
+            Console.WriteLine("Possible places and dates: ");
+            foreach (KeyValuePair<(string, DateTime), List<string>> probMeeting in participants)
+            {
+                Console.WriteLine("Location: " + probMeeting.Key.Item1 + ", Date: " + probMeeting.Key.Item2 +
+                    ", number of people who can attend at this date and place: " + probMeeting.Value.Count);
+            }
+            Console.WriteLine("Coordinator of meeting: " + coordinatorUsername);
         }
-        public override bool Equals(object obj) => Equals(obj as MeetingServices);
+
+        public override bool Equals(object obj) => Equals(obj as IMeetingServices);
         public override int GetHashCode() => (Topic).GetHashCode();
+
+        public bool Eqauls(IMeetingServices meeting)
+        {
+            if (meeting is null) return false;
+            return this.topic == ((MeetingServices)meeting).Topic;
+        }
+        public bool Equals(MeetingServices other)
+        {
+            if (other is null) return false;
+            return this.topic == other.Topic;
+        }
     }
-
-    //public class MeetingComparer : IEqualityComparer<MeetingServices>
-    //{
-    //    public bool Equals(MeetingServices x, MeetingServices y)
-    //    {
-    //        if (Object.ReferenceEquals(x, y)) return true;
-    //        if ((Object.ReferenceEquals(x,null)) || (Object.ReferenceEquals(y,null))) return false;
-    //        return (x.Topic == y.Topic);
-    //    }
-
-    //    public int GetHashCode(MeetingServices meeting)
-    //    {
-    //        if (Object.ReferenceEquals(meeting, null)) return 0;
-    //        return meeting.Topic == null ? 0 : meeting.Topic.GetHashCode();
-    //    }
-    //}
 }

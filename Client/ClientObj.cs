@@ -1,11 +1,13 @@
 ﻿using MeetingCalendar;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +20,11 @@ namespace Client
         private List<string> myCreatedMeetings = new List<string>();
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
+        private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> otherServers = new List<IServerServices>();
+        ServerServices myServer;
         private string serverURL;
         private string myURL;
-        IServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
@@ -29,18 +33,73 @@ namespace Client
             this.myURL = clientURL;
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            tcp = new TcpChannel(Int32.Parse(endURL[0]));
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            //props["port"] = 8085;
+            props["port"] = Int32.Parse(endURL[0]);
+            tcp = new TcpChannel(props, null, provider);
 
+            //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
-            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
-           
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-            this.SetUpServer(clientURL, serverURL);
-            // this.RunScript(scriptFileName);
+
+            //Setup my server
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
+            this.myServer = (ServerServices)Activator.GetObject(
+                typeof(ServerServices),
+                serverURL);
+            myServer.NewClient(this.userName, clientURL);
+
+            //Set up other servers
+            this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
+
+            //this.RunScript(scriptFileName);
+        }
+
+        private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
+        {
+            List<string> servers = server.getOtherServerURLs();
+            List<IServerServices> serverInstances = server.Servers;
+           
+            Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
+            Console.WriteLine("There are [" + serverInstances.Count + "] serverInstances in the system other than " + server);
+
+            if (servers.Count < 1) //No other servers yet
+            {
+                return; 
+            }
+            if (servers.Count >= maxFaults)
+            {
+                for (int i = 0; i < maxFaults; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    this.otherServers.Add(s);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    this.otherServers.Add(s);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
+          
 
             this.createMeeting("mandagmote", 2, null, null);
         }
@@ -222,10 +281,14 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
-                Console.WriteLine(availableMeetings);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
+                foreach (MeetingServices meeting in availableMeetings)
+                {
+                    meeting.printStatus();
+                }
             } catch (Exception e)
             {
+                Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
                 this.changeServer();
             }
@@ -236,22 +299,23 @@ namespace Client
             // Find a new server
         }
 
-        private void SetUpServer(string cURL, string sURL)
-        {
-            this.myServer = (IServerServices)Activator.GetObject(
-                typeof(IServerServices),
-                sURL);
-            
-            myServer.NewClient(this.userName, cURL); 
-        }
-
         public void PrintStatus()
         {
-            Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer + ".");
+            foreach (string s in this.otherServerURLs)
+            {
+                Console.WriteLine("My server urls are " + s);
+            }
+            foreach (IServerServices serverConnection in this.otherServers)
+            {
+                Console.WriteLine("My server connections are " + serverConnection.getServerURL());
+            }
         }
         static void Main(string[] args)
         {
-            new ClientObj(args[0], args[1], args[2], args[3]);
+            ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
+            co.PrintStatus();
+
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
         }
