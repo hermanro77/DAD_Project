@@ -51,14 +51,16 @@ namespace Client
             //Setup my server
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             this.myServer = (ServerServices)Activator.GetObject(
-                typeof(ServerServices),
-                serverURL);
+            typeof(ServerServices),
+            serverURL);
             myServer.NewClient(this.userName, clientURL);
+
 
             //Set up other servers
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
             //this.RunScript(scriptFileName);
+            this.createMeeting("mandagsmote", 2, null, null);
         }
 
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)

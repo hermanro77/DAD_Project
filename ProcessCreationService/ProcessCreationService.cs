@@ -72,12 +72,20 @@ namespace ProcessCreationService
 
             //Creates 3 servers and 1 client and set them up to know each other
             ProcessCreationService pcs = new ProcessCreationService();
-            pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
-            pcs.createServer("server2", "tcp://localhost:50012/server2", 3, 0, 0, "tcp://localhost:50000/server1");
-            pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
+            pcs.createServer("server1", "tcp://localhost:50008/server1", 3, 0, 0, "null");
+
+            pcs.createServer("server2", "tcp://localhost:50009/server2", 3, 0, 0, "tcp://localhost:50008/server1");
+            pcs.createServer("server3", "tcp://localhost:50010/server3", 3, 0, 0, "tcp://localhost:50009/server2");
 
             Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
-            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50011/server1", "scriptFilePath");
+            //pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50011/server1", "scriptFilePath");
+
+            //pcs.createClient("client3", "tcp://localhost:50003/client3", "tcp://localhost:50012/server2", "scriptFilePath");
+            //pcs.createClient("client4", "tcp://localhost:50004/client4", "tcp://localhost:50012/server2", "scriptFilePath");
+
+            //pcs.createClient("client5", "tcp://localhost:50005/client5", "tcp://localhost:50013/server3", "scriptFilePath");
+            //pcs.createClient("client6", "tcp://localhost:50006/client6", "tcp://localhost:50013/server3", "scriptFilePath");
 
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();

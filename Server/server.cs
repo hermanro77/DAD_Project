@@ -143,7 +143,7 @@ namespace MeetingCalendar
             props["port"] = Int32.Parse(endURL[0]);
             this.channel = new TcpChannel(props, null, provider);
             // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            ChannelServices.RegisterChannel(channel, false);
+            //ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
@@ -250,15 +250,23 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
+            Console.WriteLine("hello foor lock");
             lock (clients)
             {
-
+                Console.WriteLine("Etter lock");
                 if (!clients.ContainsKey(uname))
                 {
-                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    try
+                    {
+                        IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
                     userURL);
-                    clients.Add(uname, cli);
-                    clientURLs.Add(userURL);
+                        clients.Add(uname, cli);
+                        clientURLs.Add(userURL);
+                    }catch (Exception e)
+                    {
+                        Console.WriteLine("HELLLOOOOOO" + e);
+                    }
+                    
                 }
             }
         }
