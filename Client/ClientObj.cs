@@ -154,10 +154,9 @@ namespace Client
         {
             try
             {
-                meetingsClientKnows.Add(new MeetingServices(this.userName, "Styrepils", 2, null, null));
-                IMeetingServices[] myMeets = meetingsClientKnows.ToArray<IMeetingServices>();
-                string[] mystrings = { "Pedro", "Juan", "Hermano" };
-                IMeetingServices[] availableMeetings = myServer.ListMeetings(userName, myMeets, true);
+                //IMeetingServices[] myMeets = meetingsClientKnows.ToArray<IMeetingServices>();
+                //IMeetingServices[] availableMeetings = myServer.ListMeetings(userName, myMeets, true);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
                 Console.WriteLine(availableMeetings);
             } catch (Exception e)
             {

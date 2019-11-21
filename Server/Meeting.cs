@@ -57,13 +57,20 @@ namespace MeetingCalendar
             }
         }
 
-        public bool Equals(MeetingServices otherMeeting)
-        {
-            if (otherMeeting is null) return false;
-            return this.topic == otherMeeting.Topic;
-        }
         public override bool Equals(object obj) => Equals(obj as MeetingServices);
         public override int GetHashCode() => (Topic).GetHashCode();
+
+        public bool Eqauls(IMeetingServices meeting)
+        {
+            if (meeting is null) return false;
+            return this.topic == ((MeetingServices)meeting).Topic;
+        }
+
+        public bool Equals(MeetingServices other)
+        {
+            if (other is null) return false;
+            return this.topic == other.Topic;
+        }
     }
 
     //public class MeetingComparer : IEqualityComparer<MeetingServices>

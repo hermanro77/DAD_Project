@@ -214,44 +214,30 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
-        public IMeetingServices[] ListMeetings(string userName, IMeetingServices[] meetingClientKnows, bool requesterIsClient)
+        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            // var intersectMeetings = meetingClientKnows.Select(i => ((MeetingServices)i).Topic).Intersect(meetings.Select(j => ((MeetingServices)j).Topic));
-            try
+            Console.WriteLine("Climeet");
+            IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
+            foreach (MeetingServices meeting in intersectMeetings)
             {
-                Console.WriteLine(userName);
-                foreach (IMeetingServices meet in meetingClientKnows)
+                if (meeting.IsInvited(userName) )
                 {
-                    Console.WriteLine(((MeetingServices)meet).Topic);
+                    availableMeetings.Add(meeting);
                 }
-                Console.WriteLine(meetingClientKnows);
-                Console.WriteLine(requesterIsClient);
-            } catch (Exception e)
-            {
-                Console.WriteLine(e);
             }
-            //List<IMeetingServices> clientMeetings = meetingClientKnows.ToList<IMeetingServices>();
-            // IEnumerable<IMeetingServices> intersectMeetings = clientMeetings.Intersect(meetings);
-            //foreach (MeetingServices meeting in intersectMeetings)
-            //{
-            //    if (meeting.IsInvited(userName) )
-            //    {
-            //        availableMeetings.Add(meeting);
-            //    }
-            //}
-            //if (requesterIsClient)
-            //{
-            //    foreach (IServerServices server in servers)
-            //    {
-            //        foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
-            //        {
-            //            availableMeetings.Add(meets);
-            //        }
-
-            //    }
-            //}
-            return availableMeetings.ToArray<IMeetingServices>();
+            if (requesterIsClient)
+            {
+                foreach (IServerServices server in servers)
+                {
+                    foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+                    {
+                        availableMeetings.Add(meets);
+                    }
+                }
+            }
+            //return availableMeetings.ToArray<IMeetingServices>();
+            return availableMeetings;
         }
         static void Main(string[] args)
         {   
