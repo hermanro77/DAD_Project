@@ -22,11 +22,9 @@ namespace CommonTypes
         public interface IMeetingServices
         {
             void JoinMeeting(string userName, List<(string, DateTime)> dateLoc);
-
+            string getTopic();
             bool Eqauls(IMeetingServices meeting);
-
             void printStatus();
-
         }
 
         public interface IServerServices
@@ -42,9 +40,15 @@ namespace CommonTypes
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);
             List<string> getSampleClientsFromOtherServers();
-            List<string> getClients();
+            List<string> getOwnClients();
             string getRandomClientURL();
             void PrintStatus();
+            List<IMeetingServices> getMeetings();
+            string getServerURL();
+            List<string> getOtherServerURLs();
+
+
+
         }
     }
 }

@@ -35,6 +35,10 @@ namespace MeetingCalendar
         public List<(string, DateTime)> Slots { get => locDateOptions; }
         public Boolean Closed { set => closed = true; }
 
+        public string getTopic()
+        {
+            return this.Topic;
+        }
         public bool IsInvited(string userName)
         {
             if (invitees == null)
@@ -82,7 +86,6 @@ namespace MeetingCalendar
             if (meeting is null) return false;
             return this.topic == ((MeetingServices)meeting).Topic;
         }
-
         public bool Equals(MeetingServices other)
         {
             if (other is null) return false;

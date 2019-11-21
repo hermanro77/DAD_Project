@@ -20,9 +20,11 @@ namespace Client
         private List<string> myCreatedMeetings = new List<string>();
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
+        private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> otherServers = new List<IServerServices>();
+        ServerServices myServer;
         private string serverURL;
         private string myURL;
-        IServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
@@ -38,6 +40,7 @@ namespace Client
             props["port"] = Int32.Parse(endURL[0]);
             tcp = new TcpChannel(props, null, provider);
 
+            //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             ChannelServices.RegisterChannel(tcp, false);
@@ -45,8 +48,58 @@ namespace Client
                 typeof(ClientObj),
                 userName,
                 WellKnownObjectMode.Singleton);
-            this.SetUpServer(clientURL, serverURL);
-            // this.RunScript(scriptFileName);
+
+            //Setup my server
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
+            this.myServer = (ServerServices)Activator.GetObject(
+                typeof(ServerServices),
+                serverURL);
+            myServer.NewClient(this.userName, clientURL);
+
+            //Set up other servers
+            this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
+
+            //this.RunScript(scriptFileName);
+        }
+
+        private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
+        {
+            List<string> servers = server.getOtherServerURLs();
+            List<IServerServices> serverInstances = server.Servers;
+           
+            Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
+            Console.WriteLine("There are [" + serverInstances.Count + "] serverInstances in the system other than " + server);
+
+            if (servers.Count < 1) //No other servers yet
+            {
+                return; 
+            }
+            if (servers.Count >= maxFaults)
+            {
+                for (int i = 0; i < maxFaults; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    this.otherServers.Add(s);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    this.otherServerURLs.Add(servers[i]);
+
+                    ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                    servers[i]);
+                    this.otherServers.Add(s);
+                    s.NewClient(this.userName, clientURL);
+                }
+            }
         }
 
         public void RunScript(string scriptFileName)
@@ -129,7 +182,7 @@ namespace Client
         private List<string> getListOfClientURLs()
         {
             List<string> sample = myServer.getSampleClientsFromOtherServers();
-            List<string> clientsFromSameServer = myServer.getClients();
+            List<string> clientsFromSameServer = myServer.getOwnClients();
             if (clientsFromSameServer.Contains(this.myURL)) {
                 clientsFromSameServer.Remove(this.myURL); 
             }
@@ -184,24 +237,24 @@ namespace Client
             // Find a new server
         }
 
-        private void SetUpServer(string cURL, string sURL)
-        {
-            this.myServer = (IServerServices)Activator.GetObject(
-                typeof(IServerServices),
-                sURL);
-            
-            myServer.NewClient(this.userName, cURL); 
-        }
-
         public void PrintStatus()
         {
-            Console.WriteLine("Client: " + userName + " My server is " + serverURL+".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer + ".");
+            foreach (string s in this.otherServerURLs)
+            {
+                Console.WriteLine("My server urls are " + s);
+            }
+            foreach (IServerServices serverConnection in this.otherServers)
+            {
+                Console.WriteLine("My server connections are " + serverConnection.getServerURL());
+            }
         }
         static void Main(string[] args)
         {
-            ClientObj clo = new ClientObj(args[0], args[1], args[2], args[3]);
+            ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
+            co.PrintStatus();
+
             Console.WriteLine("<enter> to exit...");
-            clo.ListMeetings();
             Console.ReadLine();
         }
     }
