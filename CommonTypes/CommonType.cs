@@ -23,7 +23,9 @@ namespace CommonTypes
         {
             void JoinMeeting(string userName, List<(string, DateTime)> dateLoc);
 
-            // bool Eqauls(IMeetingServices meeting);
+            bool Eqauls(IMeetingServices meeting);
+
+            void printStatus();
 
         }
 

@@ -1,10 +1,12 @@
 ﻿using Server;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using static CommonTypes.CommonType;
 
@@ -16,7 +18,7 @@ namespace MeetingCalendar
         private List<string> clientURLs = new List<string>();
         private List<IServerServices> servers;
         private List<string> serverURLs;
-        private List<IMeetingServices> meetings;
+        private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
         TcpChannel channel;
@@ -36,7 +38,12 @@ namespace MeetingCalendar
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             Console.WriteLine("Server port when server initialized:" + endURL[0]);
-            this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
@@ -236,8 +243,7 @@ namespace MeetingCalendar
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            // var intersectMeetings = meetingClientKnows.Select(i => ((MeetingServices)i).Topic).Intersect(meetings.Select(j => ((MeetingServices)j).Topic));
-            IEnumerable<IMeetingServices> intersectMeetings = meetingClientKnows.Intersect(meetings);
+            IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
             foreach (MeetingServices meeting in intersectMeetings)
             {
                 if (meeting.IsInvited(userName) )
@@ -253,7 +259,6 @@ namespace MeetingCalendar
                     {
                         availableMeetings.Add(meets);
                     }
-
                 }
             }
             return availableMeetings;
