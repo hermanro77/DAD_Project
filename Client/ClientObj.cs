@@ -25,7 +25,6 @@ namespace Client
         ServerServices myServer;
         private string serverURL;
         private string myURL;
-        IServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
@@ -182,7 +181,7 @@ namespace Client
         private List<string> getListOfClientURLs()
         {
             List<string> sample = myServer.getSampleClientsFromOtherServers();
-            List<string> clientsFromSameServer = myServer.getClients();
+            List<string> clientsFromSameServer = myServer.getOwnClients();
             if (clientsFromSameServer.Contains(this.myURL)) {
                 clientsFromSameServer.Remove(this.myURL); 
             }
@@ -255,7 +254,6 @@ namespace Client
             co.PrintStatus();
 
             Console.WriteLine("<enter> to exit...");
-            clo.ListMeetings();
             Console.ReadLine();
         }
     }

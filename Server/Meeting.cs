@@ -86,11 +86,10 @@ namespace MeetingCalendar
             if (meeting is null) return false;
             return this.topic == ((MeetingServices)meeting).Topic;
         }
-
-        //public bool Equals(MeetingServices other)
-        //{
-        //    if (other is null) return false;
-        //    return this.topic == other.Topic;
-        //}
+        public bool Equals(MeetingServices other)
+        {
+            if (other is null) return false;
+            return this.topic == other.Topic;
+        }
     }
 }

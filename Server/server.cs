@@ -267,7 +267,7 @@ namespace MeetingCalendar
         {
             List<string> samples = new List<string>();
          
-            foreach (ServerServices server in servers)
+            foreach (ServerServices server in otherServers)
             {
                 samples.Add(server.getRandomClientURL());       
             }
