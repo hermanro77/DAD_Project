@@ -39,6 +39,9 @@ namespace CommonTypes
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);
+            List<string> getSampleClientsFromOtherServers();
+            List<string> getClients();
+            string getRandomClientURL();
             void PrintStatus();
         }
     }
