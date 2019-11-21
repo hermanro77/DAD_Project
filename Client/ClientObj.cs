@@ -1,11 +1,13 @@
 ﻿using MeetingCalendar;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,19 +22,24 @@ namespace Client
         private string userName;
         private List<string> otherServerURLs = new List<string>();
         private List<IServerServices> otherServers = new List<IServerServices>();
-
         ServerServices myServer;
+        private string serverURL;
+        private string myURL;
+        IServerServices myServer;
         TcpChannel tcp;
 
         public ClientObj(string userName, string clientURL, string serverURL, string scriptFileName)
         {
-
             this.userName = userName;
-            
-            //create tcp channel
+            this.myURL = clientURL;
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            tcp = new TcpChannel(Int32.Parse(endURL[0]));
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            //props["port"] = 8085;
+            props["port"] = Int32.Parse(endURL[0]);
+            tcp = new TcpChannel(props, null, provider);
 
             //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
@@ -171,6 +178,17 @@ namespace Client
             // USE TRY-CATCH
         }
 
+
+        private List<string> getListOfClientURLs()
+        {
+            List<string> sample = myServer.getSampleClientsFromOtherServers();
+            List<string> clientsFromSameServer = myServer.getClients();
+            if (clientsFromSameServer.Contains(this.myURL)) {
+                clientsFromSameServer.Remove(this.myURL); 
+            }
+            return sample.Concat(clientsFromSameServer).ToList();
+        }
+
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)
         {
             try
@@ -201,14 +219,17 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName,meetingsClientKnows, true);
-                Console.WriteLine(availableMeetings);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
+                foreach (MeetingServices meeting in availableMeetings)
+                {
+                    meeting.printStatus();
+                }
             } catch (Exception e)
             {
+                Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
                 this.changeServer();
             }
-            
         }
 
         private void changeServer()
@@ -232,7 +253,9 @@ namespace Client
         {
             ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
             co.PrintStatus();
+
             Console.WriteLine("<enter> to exit...");
+            clo.ListMeetings();
             Console.ReadLine();
         }
     }

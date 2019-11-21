@@ -1,11 +1,13 @@
 ﻿using CommonTypes;
 using Server;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Serialization.Formatters;
 using System.Threading;
 using static CommonTypes.CommonType;
 
@@ -16,6 +18,7 @@ namespace MeetingCalendar
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> otherServers = new List<IServerServices>();
         private List<string> otherServerURLs = new List<string>();
+        private List<string> clientURLs = new List<string>();
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
@@ -133,8 +136,14 @@ namespace MeetingCalendar
         {
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            //ChannelServices.RegisterChannel(channel, false);
+            Console.WriteLine("Server port when server initialized:" + endURL[0]);
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
@@ -249,8 +258,32 @@ namespace MeetingCalendar
                     IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
                     userURL);
                     clients.Add(uname, cli);
+                    clientURLs.Add(userURL);
                 }
             }
+        }
+    
+        public List<string> getSampleClientsFromOtherServers()
+        {
+            List<string> samples = new List<string>();
+         
+            foreach (ServerServices server in servers)
+            {
+                samples.Add(server.getRandomClientURL());       
+            }
+            return samples;
+        }
+   
+        public string getRandomClientURL()
+        {
+            Random r = new Random();
+            int randomIndex = r.Next(0, clients.Count);
+            return clientURLs[randomIndex];
+        }
+
+        public List<string> getOwnClients() {
+
+            return clientURLs;
         }
         public void AddRoom(string location, int capacity, string roomName)
         {
@@ -284,11 +317,11 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
+
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            // var intersectMeetings = meetingClientKnows.Select(i => ((MeetingServices)i).Topic).Intersect(meetings.Select(j => ((MeetingServices)j).Topic));
-            IEnumerable<IMeetingServices> intersectMeetings = meetingClientKnows.Intersect(meetings);
+            IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
             foreach (MeetingServices meeting in intersectMeetings)
             {
                 if (meeting.IsInvited(userName) )
@@ -304,7 +337,6 @@ namespace MeetingCalendar
                     {
                         availableMeetings.Add(meets);
                     }
-
                 }
             }
             return availableMeetings;
