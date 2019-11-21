@@ -41,6 +41,34 @@ namespace MeetingCalendar
             
         }
 
+        public void PrintStatus()
+        {
+            Console.WriteLine("I am " + serverID);
+            Console.WriteLine("URL: " + serverURL);
+            Console.WriteLine("Max faults: " + max_faults);
+
+            string otherServers = "Other servers: ";
+            foreach (string url in otherServerURLs)
+            {
+                otherServers += url + ", ";
+            }
+            Console.WriteLine(otherServers);
+
+            string clientsStr = "Clients: ";
+            foreach(KeyValuePair<string, IClientServices> entry in this.clients)
+            {
+                clientsStr += entry.Key + ", ";
+            }
+            Console.WriteLine(clients);
+
+            string meetingTopics = "Meetings: ";
+            foreach (IMeetingServices meeting in this.meetings)
+            {
+                otherServers += meeting.getTopic() + ", ";
+            }
+            Console.WriteLine(meetingTopics);
+        }
+
         public List<IMeetingServices> getMeetings()
         {
             return this.meetings;
@@ -96,7 +124,6 @@ namespace MeetingCalendar
         }
         public void AddNewServer(string serverURL)
         {
-            Console.WriteLine("Adding " + serverURL + " to " + this.getServerURL());
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);
@@ -106,7 +133,6 @@ namespace MeetingCalendar
         {
             string[] partlyURL = serverURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            Console.WriteLine("Server port when server initialized:" + endURL[0]);
             this.channel = new TcpChannel(Int32.Parse(endURL[0]));
             //ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
@@ -231,13 +257,7 @@ namespace MeetingCalendar
             Room newRoom = new Room(roomName, capacity);
             this.location.addRoom(newRoom, location);
         }
-      
-        public void PrintStatus()
-        {
-            Console.WriteLine("Server: I am alive!");
-        }
-    
-  
+          
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
@@ -289,13 +309,14 @@ namespace MeetingCalendar
             }
             return availableMeetings;
         }
+
         static void Main(string[] args)
         {
             
             ServerServices server = new ServerServices(args[0], args[1], args[2], Int32.Parse(args[3]),
                 Int32.Parse(args[4]), Int32.Parse(args[5]));
             server.initialize(args[2], args[1], server);
-
+            
             Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
         }

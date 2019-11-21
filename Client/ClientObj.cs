@@ -76,6 +76,7 @@ namespace Client
                     ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
                     servers[i]);
+                    this.otherServers.Add(s);
                     s.NewClient(this.userName, clientURL);
                 }
             }
@@ -88,6 +89,7 @@ namespace Client
                     ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
                     servers[i]);
+                    this.otherServers.Add(s);
                     s.NewClient(this.userName, clientURL);
                 }
             }
@@ -216,16 +218,20 @@ namespace Client
 
         public void PrintStatus()
         {
-            Console.WriteLine("Client: " + userName + " My server is " + myServer + ".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer + ".");
+            foreach (string s in this.otherServerURLs)
+            {
+                Console.WriteLine("My server urls are " + s);
+            }
+            foreach (IServerServices serverConnection in this.otherServers)
+            {
+                Console.WriteLine("My server connections are " + serverConnection.getServerURL());
+            }
         }
         static void Main(string[] args)
         {
             ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
-            foreach (string s in co.otherServerURLs)
-            {
-                Console.WriteLine(s);
-            }
-            
+            co.PrintStatus();
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
         }
