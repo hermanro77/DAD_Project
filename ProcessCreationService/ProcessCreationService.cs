@@ -72,8 +72,18 @@ namespace ProcessCreationService
 
             ProcessCreationService pcs = new ProcessCreationService();
             pcs.createServer("server1", "tcp://localhost:50000/server1", 0, 0, 0, "scriptFilePath");
+            pcs.createServer("server2", "tcp://localhost:50001/server2", 0, 0, 0, "scriptFilePath");
+            pcs.createServer("server3", "tcp://localhost:50002/server3", 0, 0, 0, "scriptFilePath");
+
+            pcs.createClient("client1", "tcp://localhost:50003/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            pcs.createClient("client2", "tcp://localhost:50004/client1", "tcp://localhost:50000/server1", "scriptFilePath");
             
-            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            pcs.createClient("client3", "tcp://localhost:50006/client1", "tcp://localhost:50001/server2", "scriptFilePath");
+            pcs.createClient("client4", "tcp://localhost:50007/client1", "tcp://localhost:50001/server2", "scriptFilePath");
+            
+            pcs.createClient("client5", "tcp://localhost:50008/client1", "tcp://localhost:50002/server3", "scriptFilePath");
+            pcs.createClient("client6", "tcp://localhost:50009/client1", "tcp://localhost:50002/server3", "scriptFilePath");
+            pcs.createClient("client7", "tcp://localhost:50010/client1", "tcp://localhost:50002/server3", "scriptFilePath");
 
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
