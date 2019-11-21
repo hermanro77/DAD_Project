@@ -40,7 +40,6 @@ namespace Client
 
             Console.WriteLine("Client obj at: " + clientURL);
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
-           
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
@@ -114,8 +113,8 @@ namespace Client
             try
             {
             IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+                meetingsClientKnows.Add(meetingProposal);
                 myServer.NewMeetingProposal(meetingProposal);
-
             }
             catch (Exception e)
             {
