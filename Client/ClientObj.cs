@@ -123,12 +123,11 @@ namespace Client
         private List<string> getListOfClientURLs()
         {
             List<string> sample = myServer.getSampleClientsFromOtherServers();
-            List<string> clientUnderSameServer = myServer.getClients();
-            if (clientUnderSameServer.Contains(this.myURL)) {
-                clientUnderSameServer.Remove(this.myURL); 
+            List<string> clientsFromSameServer = myServer.getClients();
+            if (clientsFromSameServer.Contains(this.myURL)) {
+                clientsFromSameServer.Remove(this.myURL); 
             }
-
-            return sample.Concat(clientUnderSameServer).ToList();
+            return sample.Concat(clientsFromSameServer).ToList();
         }
 
         private void JoinMeeting(string meetingTopic, List<(string, DateTime)> dateLoc)

@@ -41,6 +41,7 @@ namespace CommonTypes
             void AddNewServer(string URL);
             List<string> getSampleClientsFromOtherServers();
             List<string> getClients();
+            string getRandomClientURL();
             void PrintStatus();
         }
     }

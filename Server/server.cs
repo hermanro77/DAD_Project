@@ -172,7 +172,7 @@ namespace MeetingCalendar
             }
         }
     
-        public string[] getSampleClientsFromOtherServers()
+        public List<string> getSampleClientsFromOtherServers()
         {
             List<string> samples = new List<string>();
          
@@ -180,9 +180,9 @@ namespace MeetingCalendar
             {
                 samples.Add(server.getRandomClientURL());       
             }
-            return samples.ToArray();
+            return samples;
         }
-        //maa denne være commontype siden forskjellige servere skal kalle metoden paa hverandre
+   
         public string getRandomClientURL()
         {
             Random r = new Random();
