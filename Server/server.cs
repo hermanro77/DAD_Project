@@ -329,16 +329,16 @@ namespace MeetingCalendar
                     availableMeetings.Add(meeting);
                 }
             }
-            if (requesterIsClient)
-            {
-                foreach (IServerServices server in otherServers)
-                {
-                    foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
-                    {
-                        availableMeetings.Add(meets);
-                    }
-                }
-            }
+            //if (requesterIsClient)
+            //{
+            //    foreach (IServerServices server in servers)
+            //    {
+            //        foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+            //        {
+            //            availableMeetings.Add(meets);
+            //        }
+            //    }
+            //}
             return availableMeetings;
         }
 
@@ -351,6 +351,11 @@ namespace MeetingCalendar
             
             Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
+        }
+
+        public List<string> getClients()
+        {
+            throw new NotImplementedException();
         }
     }
 }
