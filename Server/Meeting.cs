@@ -35,6 +35,10 @@ namespace MeetingCalendar
         public List<(string, DateTime)> Slots { get => locDateOptions; }
         public Boolean Closed { set => closed = true; }
 
+        public string getTopic()
+        {
+            return this.Topic;
+        }
         public bool IsInvited(string userName)
         {
             if (invitees == null)
