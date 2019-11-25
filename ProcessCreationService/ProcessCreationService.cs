@@ -78,7 +78,13 @@ namespace ProcessCreationService
 
             Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
             pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
 
+            //Process[] processes = Process.GetProcessesByName("Server", "localhost");
+            //foreach(Process process in processes)
+            //{
+             //   Console.WriteLine(process.ProcessName);
+            //}
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
 

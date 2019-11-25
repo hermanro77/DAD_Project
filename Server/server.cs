@@ -143,7 +143,7 @@ namespace MeetingCalendar
             props["port"] = Int32.Parse(endURL[0]);
             this.channel = new TcpChannel(props, null, provider);
             // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            ChannelServices.RegisterChannel(channel, false);
+            //ChannelServices.RegisterChannel(channel, false);
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
