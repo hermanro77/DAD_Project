@@ -72,7 +72,7 @@ namespace Client
 
             if (servers.Count < 1) //No other servers yet
             {
-                return; 
+                throw new Exception("Can not find a new server to connect to"); 
             }
             if (servers.Count >= maxFaults)
             {
@@ -234,12 +234,15 @@ namespace Client
 
         private void changeServer()
         {
-            // Find a new server
+            if (this.otherServers.Count > 0)
+            {
+                this.myServer = (ServerServices)otherServers[0];
+            }
         }
 
         public void PrintStatus()
         {
-            Console.WriteLine("I am client: " + userName + ". My server is " + myServer + ".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer.getServerURL() + ".");
             foreach (string s in this.otherServerURLs)
             {
                 Console.WriteLine("My server urls are " + s);
