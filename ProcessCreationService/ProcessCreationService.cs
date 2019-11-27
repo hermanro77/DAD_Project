@@ -80,10 +80,13 @@ namespace ProcessCreationService
             pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
             pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
 
+            pcs.createClient("client3", "tcp://localhost:50003/client3", "tcp://localhost:50012/server2", "scriptFilePath");
+            pcs.createClient("client4", "tcp://localhost:50004/client4", "tcp://localhost:50012/server2", "scriptFilePath");
+
             //Process[] processes = Process.GetProcessesByName("Server", "localhost");
             //foreach(Process process in processes)
             //{
-             //   Console.WriteLine(process.ProcessName);
+            //   Console.WriteLine(process.ProcessName);
             //}
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();

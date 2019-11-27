@@ -61,7 +61,14 @@ namespace Client
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
             //this.RunScript(scriptFileName);
-            this.createMeeting("mandagsmote", 2, null, null);
+            if (userName == "client4")
+            {
+                DateTime slotdate = new DateTime(2018, 02, 04);
+                List<(string, DateTime)> slots = new List<(string, DateTime)> { ("Lisbon", slotdate) };
+                this.createMeeting("bestTopic", 2, slots, null);
+
+            }
+            
         }
 
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
@@ -104,7 +111,7 @@ namespace Client
             }
           
 
-            this.createMeeting("mandagmote", 2, null, null);
+  
         }
 
         public void RunScript(string scriptFileName)
@@ -169,8 +176,8 @@ namespace Client
             List<(string, DateTime)> slots, List<string> invitees)
         {
             try
-            {
-            IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+            {   
+                IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
                 myServer.NewMeetingProposal(meetingProposal);
 
@@ -247,6 +254,7 @@ namespace Client
             try
             {
                 List<string> sample = myServer.getSampleClientsFromOtherServers();
+                return sample;
             }catch (Exception e)
             {
                 this.changeServer();
@@ -322,7 +330,7 @@ namespace Client
         {
             ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
             co.PrintStatus();
-
+            
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
         }

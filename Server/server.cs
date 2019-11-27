@@ -250,10 +250,8 @@ namespace MeetingCalendar
 
         public void NewClient(string uname, string userURL)
         {
-            Console.WriteLine("hello foor lock");
             lock (clients)
             {
-                Console.WriteLine("Etter lock");
                 if (!clients.ContainsKey(uname))
                 {
                     try
