@@ -42,6 +42,7 @@ namespace Client
 
             //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
+            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             ChannelServices.RegisterChannel(tcp, false);
             RemotingConfiguration.RegisterWellKnownServiceType(
                 typeof(ClientObj),
@@ -73,7 +74,7 @@ namespace Client
 
             if (servers.Count < 1) //No other servers yet
             {
-                return; 
+                throw new Exception("Can not find a new server to connect to"); 
             }
             if (servers.Count >= maxFaults)
             {
@@ -170,6 +171,7 @@ namespace Client
             try
             {
             IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+                meetingsClientKnows.Add(meetingProposal);
                 myServer.NewMeetingProposal(meetingProposal);
 
                 //Dersom motet skal sendes til alle, uten gjesteliste
@@ -298,12 +300,15 @@ namespace Client
 
         private void changeServer()
         {
-            // Find a new server
+            if (this.otherServers.Count > 0)
+            {
+                this.myServer = (ServerServices)otherServers[0];
+            }
         }
 
         public void PrintStatus()
         {
-            Console.WriteLine("I am client: " + userName + ". My server is " + myServer + ".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer.getServerURL() + ".");
             foreach (string s in this.otherServerURLs)
             {
                 Console.WriteLine("My server urls are " + s);

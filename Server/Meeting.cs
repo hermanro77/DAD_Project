@@ -45,7 +45,7 @@ namespace MeetingCalendar
             {
                 return true;
             }
-            return invitees.Contains(userName) ;
+            return invitees.Contains(userName);
         }
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
 
@@ -78,7 +78,7 @@ namespace MeetingCalendar
             Console.WriteLine("Coordinator of meeting: " + coordinatorUsername);
         }
 
-        public override bool Equals(object obj) => Equals(obj as IMeetingServices);
+        public override bool Equals(object obj) => Equals(obj as MeetingServices);
         public override int GetHashCode() => (Topic).GetHashCode();
 
         public bool Eqauls(IMeetingServices meeting)
