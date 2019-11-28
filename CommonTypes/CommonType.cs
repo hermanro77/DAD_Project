@@ -46,6 +46,10 @@ namespace CommonTypes
             List<IMeetingServices> getMeetings();
             string getServerURL();
             List<string> getOtherServerURLs();
+            string getServerID();
+            void serverKill();
+            void freeze();
+            void unfreeze();
 
 
 

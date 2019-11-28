@@ -3,6 +3,7 @@ using Server;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -83,6 +84,11 @@ namespace MeetingCalendar
         public string getServerURL()
         {
             return this.serverURL;
+        }
+
+        public string getServerID()
+        {
+            return this.serverID;
         }
 
         public List<string> getOtherServerURLs()
@@ -342,6 +348,32 @@ namespace MeetingCalendar
             return availableMeetings;
         }
 
+        public void serverKill()
+        {
+            Process[] runningProcesses = Process.GetProcesses();
+            foreach (Process process in runningProcesses)
+            {
+                foreach (ProcessModule module in process.Modules)
+                {
+                    if (module.FileName.Equals("Server.exe"))
+                    {
+                        process.Kill();
+                    }
+                }
+            }
+
+        }
+
+        public void freeze()
+        {
+            // How can i freeze this server until it is woken again?
+        }
+
+        public void unfreeze()
+        {
+            // How can I unfreeze?
+        }
+
         static void Main(string[] args)
         {
             
@@ -353,9 +385,5 @@ namespace MeetingCalendar
             Console.ReadLine();
         }
 
-        public List<string> getClients()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

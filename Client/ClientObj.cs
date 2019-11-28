@@ -72,7 +72,7 @@ namespace Client
 
             if (servers.Count < 1) //No other servers yet
             {
-                throw new Exception("Can not find a new server to connect to"); 
+                //throw new Exception("Can not find a new server to connect to"); 
             }
             if (servers.Count >= maxFaults)
             {
