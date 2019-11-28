@@ -21,7 +21,6 @@ namespace Client
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private List<string> otherServerURLs = new List<string>();
-        private List<IServerServices> otherServers = new List<IServerServices>();
         ServerServices myServer;
         private string serverURL;
         private string myURL;
@@ -74,10 +73,10 @@ namespace Client
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
         {
             List<string> servers = server.getOtherServerURLs();
-            List<IServerServices> serverInstances = server.Servers;
+         
            
             Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
-            Console.WriteLine("There are [" + serverInstances.Count + "] serverInstances in the system other than " + server);
+        
 
             if (servers.Count < 1) //No other servers yet
             {
@@ -89,11 +88,6 @@ namespace Client
                 {
                     this.otherServerURLs.Add(servers[i]);
 
-                    ServerServices s = (ServerServices)Activator.GetObject(
-                    typeof(ServerServices),
-                    servers[i]);
-                    this.otherServers.Add(s);
-                    s.NewClient(this.userName, clientURL);
                 }
             }
             else
@@ -101,12 +95,6 @@ namespace Client
                 for (int i = 0; i < servers.Count; i++)
                 {
                     this.otherServerURLs.Add(servers[i]);
-
-                    ServerServices s = (ServerServices)Activator.GetObject(
-                    typeof(ServerServices),
-                    servers[i]);
-                    this.otherServers.Add(s);
-                    s.NewClient(this.userName, clientURL);
                 }
             }
           
@@ -184,8 +172,9 @@ namespace Client
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
                 {
-                 informOtherClients(meetingProposal, getSampleClients(), true);
                  informOtherClients(meetingProposal, getClientsInSameHub(), false);
+                 informOtherClients(meetingProposal, getSampleClients(), true);
+    
                 }
                
 
@@ -203,20 +192,25 @@ namespace Client
         {
             List<IClientServices> clients = new List<IClientServices>();
             foreach (string URL in clientURLs){
-                clients.Add((IClientServices)Activator.GetObject(
-                typeof(IClientServices),
-                URL));
+                Console.WriteLine("Making client object with URL: " + URL);
+                ClientObj client = (ClientObj)Activator.GetObject(
+                typeof(ClientObj),
+                URL);
+                clients.Add(client);
             }
             foreach (IClientServices client in clients)
             {
+                Console.WriteLine("Looping client and receive");
                 client.receiveNewMeeting(meetingProposal, forwardMeeting);
+                
             }
         }
 
         public void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting)
         {
+            Console.WriteLine("Reached receiveNewMeeting-method");
             meetingsClientKnows.Add(meetingProposal);
-            Console.WriteLine("Meetingproposal reveived");
+            Console.WriteLine("Meetingproposal received");
             if (forwardMeeting)
             {
                 try
@@ -226,6 +220,7 @@ namespace Client
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("CHANGING SERVER!");
                     this.changeServer();
                 }
             }
@@ -239,12 +234,15 @@ namespace Client
                 if (clientsInSameHub.Contains(this.myURL))
                 {
                     clientsInSameHub.Remove(this.myURL);
+
                 }
+                Console.WriteLine("Clients in same hub:   "+ clientsInSameHub);
                 return clientsInSameHub;
             }
             catch(Exception e)
             {
                 this.changeServer();
+                Console.WriteLine("CHANGING SERVER!");
                 Console.WriteLine("Failed when getting clients from same hub. Error message: " + e);
             }
             return null;
@@ -258,6 +256,7 @@ namespace Client
             }catch (Exception e)
             {
                 this.changeServer();
+                Console.WriteLine("CHANGING SERVER!");
                 Console.WriteLine("Failed while getting clients from other servers. Error message: " + e);
             }
             return null;
@@ -270,6 +269,7 @@ namespace Client
                 myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             } catch (Exception e) {
                 Console.WriteLine(e);
+                Console.WriteLine("CHANGING SERVER!");
                 this.changeServer();
             }
         }
@@ -284,6 +284,7 @@ namespace Client
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);
+                    Console.WriteLine("CHANGING SERVER!");
                     changeServer();
                 }
             }
@@ -302,15 +303,20 @@ namespace Client
             {
                 Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
+                Console.WriteLine("CHANGING SERVER!");
                 this.changeServer();
             }
         }
 
         private void changeServer()
         {
-            if (this.otherServers.Count > 0)
+            if (this.otherServerURLs.Count > 0)
             {
-                this.myServer = (ServerServices)otherServers[0];
+                ServerServices s = (ServerServices)Activator.GetObject(
+                    typeof(ServerServices),
+                   otherServerURLs[0]);
+                this.myServer = s;
+                s.NewClient(this.userName, this.myURL);
             }
         }
 
@@ -320,10 +326,6 @@ namespace Client
             foreach (string s in this.otherServerURLs)
             {
                 Console.WriteLine("My server urls are " + s);
-            }
-            foreach (IServerServices serverConnection in this.otherServers)
-            {
-                Console.WriteLine("My server connections are " + serverConnection.getServerURL());
             }
         }
         static void Main(string[] args)

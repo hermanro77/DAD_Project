@@ -289,6 +289,11 @@ namespace MeetingCalendar
 
         public List<string> getOwnClients() {
 
+            Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
+            foreach (string URL in clientURLs)
+            {
+                Console.WriteLine(URL);
+            }
             return clientURLs;
         }
         public void AddRoom(string location, int capacity, string roomName)
