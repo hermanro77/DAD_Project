@@ -147,7 +147,7 @@ namespace MeetingCalendar
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
-        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
@@ -192,10 +192,9 @@ namespace MeetingCalendar
             Room bestroom = new Room("default", 0);
             foreach ((string, DateTime) locdateoption in meeting.LocDateOptions)
             {
-                
                 List<Room> availableRooms = new List<Room>();
                 // checks if location has available rooms and stores them
-                foreach (Room room in location.GetRooms[locdateoption.Item1])
+                foreach (Room room in location.GetRooms(locdateoption.Item1))
                 {
                     //check if room is booked on date requested for meeting and if participants dont exceed capacity of room
                     if (!room.BookedDates.Contains(locdateoption.Item2) && meeting.MinParticipants <= room.Capacity) 
@@ -203,7 +202,11 @@ namespace MeetingCalendar
                         availableRooms.Add(room);
                     }
                 }
-                int numParticipants = meeting.Participants[locdateoption].Count;
+                int numParticipants = 0;
+                if (meeting.Participants.Keys.Contains(locdateoption))
+                {
+                    numParticipants = meeting.Participants[locdateoption].Count;
+                }
                 if (numParticipants > maxNumParticipants) //if it has more participants then the previous locAndDate
                 {
                     maxNumParticipants = numParticipants;
@@ -294,7 +297,7 @@ namespace MeetingCalendar
 
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
-        { 
+        {
             foreach (MeetingServices meeting in meetings)
             {
                 if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
@@ -329,16 +332,16 @@ namespace MeetingCalendar
                     availableMeetings.Add(meeting);
                 }
             }
-            //if (requesterIsClient)
-            //{
-            //    foreach (IServerServices server in servers)
-            //    {
-            //        foreach(IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
-            //        {
-            //            availableMeetings.Add(meets);
-            //        }
-            //    }
-            //}
+            if (requesterIsClient)
+            {
+                foreach (IServerServices server in otherServers)
+                {
+                    foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+                    {
+                        availableMeetings.Add(meets);
+                    }
+                }
+            }
             return availableMeetings;
         }
 

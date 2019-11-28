@@ -9,19 +9,29 @@ namespace Server
 {
     class Location {
 
-        private readonly static String[] LOCATIONS = new String[5] { "PORTO", "LISBON", "FARO", "COIMBRA",
+        private readonly static String[] LOCATIONS = new String[5] { "PORTO", "LISBOA", "FARO", "COIMBRA",
             "ÈVORA" };
 
         private Dictionary<String, List<Room>> rooms = new Dictionary<string, List<Room>>();
 
-        public Dictionary<String, List<Room>> GetRooms {
-            get{ return rooms; }
+        //public Dictionary<String, List<Room>> GetRooms {
+        //    get{ return rooms; }
+        //}
+        public List<Room> GetRooms(string location)
+        {
+            if (rooms.Keys.Contains(location.ToUpper())){
+                return rooms[location.ToUpper()];
+            } return null;
         }
 
         public Location()
         {
             this.rooms[LOCATIONS[0]] = new List<Room>();
+            this.rooms[LOCATIONS[0]].Add(new Room("Snill pike", 8));
+            this.rooms[LOCATIONS[0]].Add(new Room("Skitten ulv", 5));
             this.rooms[LOCATIONS[1]] = new List<Room>();
+            this.rooms[LOCATIONS[1]].Add(new Room("To tette og en rødhette", 6));
+            this.rooms[LOCATIONS[1]].Add(new Room("Tre bukk og en brus takk!", 10));
             this.rooms[LOCATIONS[2]] = new List<Room>();
             this.rooms[LOCATIONS[3]] = new List<Room>();
             this.rooms[LOCATIONS[4]] = new List<Room>();
