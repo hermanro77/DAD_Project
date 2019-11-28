@@ -36,7 +36,7 @@ namespace Client
             
             //this.RunScript(scriptFileName);
         }
-        private void initialize(string username, string clientURL,string serverURL, ClientObj client )
+        private void initialize(string username, string clientURL,string serverURL, string scriptFileName, ClientObj client )
         {
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
@@ -196,7 +196,7 @@ namespace Client
             List<(string, DateTime)> slots, List<string> invitees)
         {
             try
-            {   
+            {
                 IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
                 myServer.NewMeetingProposal(meetingProposal);
@@ -214,15 +214,16 @@ namespace Client
                     Console.WriteLine("Sample of clients from other servers: ");
                     foreach (string client in sampleClientsFromOtherServers)
                     {
-                        Console.WriteLine(client);  
+                        Console.WriteLine(client);
                     };
-                 informOtherClients(meetingProposal, clientInSameHuB, false);
-                 informOtherClients(meetingProposal, sampleClientsFromOtherServers, true);
-    
-                }
+                    informOtherClients(meetingProposal, clientInSameHuB, false);
+                    informOtherClients(meetingProposal, sampleClientsFromOtherServers, true);
 
-            myCreatedMeetings.Add(meetingTopic)
+                }
+                myCreatedMeetings.Add(meetingTopic);
+
             }
+                            
 
             catch (Exception e)
             {
@@ -389,7 +390,7 @@ namespace Client
         static void Main(string[] args)
         {
             ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
-            co.initialize(args[0], args[1], args[2],co);
+            co.initialize(args[0], args[1], args[2],args[3], co);
             co.PrintStatus();
             
             Console.WriteLine("<enter> to exit...");
