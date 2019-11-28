@@ -60,7 +60,7 @@ namespace Client
             //Set up other servers
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
-            this.RunScript(@"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile.txt");
+            this.RunScript(scriptFileName);
         }
 
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)

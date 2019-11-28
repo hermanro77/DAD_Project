@@ -77,7 +77,7 @@ namespace ProcessCreationService
             //pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
 
             //Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
-            //pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            //pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", @"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile.txt");
             //pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
 
             //Process[] processes = Process.GetProcessesByName("Server", "localhost");
