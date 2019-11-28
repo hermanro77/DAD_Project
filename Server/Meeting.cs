@@ -53,7 +53,12 @@ namespace MeetingCalendar
         {
             if (!this.closed)
             {
-                this.participants[slot].Add(part);
+                if (participants.Keys.Contains(slot)) {
+                    this.participants[slot].Add(part);
+                } else
+                {
+                    this.participants[slot] = new List<string>() { part };
+                }
             }
         }
 
@@ -67,9 +72,14 @@ namespace MeetingCalendar
 
         public void printStatus()
         {
+            Console.WriteLine("Dates and locations set by the coordinator: ");
+            foreach((string, DateTime) dateLoc in Slots)
+            {
+                Console.WriteLine("Place: " + dateLoc.Item1 + ",  date: " + dateLoc.Item2.ToString("d"));
+            }
             Console.WriteLine("Meeting topic: " + topic);
             Console.WriteLine("Meeting closed: " + closed);
-            Console.WriteLine("Possible places and dates: ");
+            //Console.WriteLine("Possible places and dates: ");
             foreach (KeyValuePair<(string, DateTime), List<string>> probMeeting in participants)
             {
                 Console.WriteLine("Location: " + probMeeting.Key.Item1 + ", Date: " + probMeeting.Key.Item2 +
