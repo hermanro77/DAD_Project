@@ -68,13 +68,7 @@ namespace Client
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
             //this.RunScript(scriptFileName);
-            if (userName == "client4")
-            {
-                DateTime slotdate = new DateTime(2018, 02, 04);
-                List<(string, DateTime)> slots = new List<(string, DateTime)> { ("Lisbon", slotdate) };
-                this.createMeeting("bestTopic", 2, slots, null);
-
-            }
+        
             
         }
 
