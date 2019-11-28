@@ -31,6 +31,13 @@ namespace Client
         {
             this.userName = userName;
             this.myURL = clientURL;
+          
+
+            
+            //this.RunScript(scriptFileName);
+        }
+        private void initialize(string username, string clientURL,string serverURL, ClientObj client )
+        {
             string[] partlyURL = clientURL.Split(':');
             string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
             BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
@@ -44,10 +51,12 @@ namespace Client
             Console.WriteLine("Client obj at: " + clientURL);
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             ChannelServices.RegisterChannel(tcp, false);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ClientObj),
-                userName,
-                WellKnownObjectMode.Singleton);
+            //RemotingConfiguration.RegisterWellKnownServiceType(
+            //   typeof(ClientObj),
+            //  userName,
+            // WellKnownObjectMode.Singleton);
+            RemotingServices.Marshal(client, userName, typeof(ClientObj));
+
 
             //Setup my server
             Console.WriteLine("Creates connection to Server obj at: " + serverURL);
@@ -59,7 +68,8 @@ namespace Client
             //Set up other servers
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
-            //this.RunScript(scriptFileName);
+
+
         }
 
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
@@ -255,6 +265,7 @@ namespace Client
         static void Main(string[] args)
         {
             ClientObj co = new ClientObj(args[0], args[1], args[2], args[3]);
+            co.initialize(args[0], args[1], args[2],co);
             co.PrintStatus();
 
             Console.WriteLine("<enter> to exit...");

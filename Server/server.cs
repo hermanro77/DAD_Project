@@ -43,6 +43,21 @@ namespace MeetingCalendar
             }
             
         }
+        private void initialize(string serverURL, string serverID, ServerServices serverObj)
+        {
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            Console.WriteLine("Server port when server initialized:" + endURL[0]);
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            //ChannelServices.RegisterChannel(channel, false);
+            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
+        }
+
 
         public void PrintStatus()
         {
@@ -132,21 +147,7 @@ namespace MeetingCalendar
             otherServers.Add(server);
         }
 
-        private void initialize(string serverURL, string serverID, ServerServices serverObj)
-        {
-            string[] partlyURL = serverURL.Split(':');
-            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            Console.WriteLine("Server port when server initialized:" + endURL[0]);
-            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
-            provider.TypeFilterLevel = TypeFilterLevel.Full;
-            IDictionary props = new Hashtable();
-            props["port"] = Int32.Parse(endURL[0]);
-            this.channel = new TcpChannel(props, null, provider);
-            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            //ChannelServices.RegisterChannel(channel, false);
-            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
-        }
-
+        
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
             bool foundMeeting = false;
