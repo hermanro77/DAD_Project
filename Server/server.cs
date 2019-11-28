@@ -274,15 +274,26 @@ namespace MeetingCalendar
         {
             List<string> samples = new List<string>();
          
+
             foreach (ServerServices server in otherServers)
             {
-                samples.Add(server.getRandomClientURL());       
+                string clientURL = server.getRandomClientURL();
+                Console.WriteLine(clientURL);
+                if (clientURL != null)
+                {
+                    samples.Add(clientURL);
+                }
+                Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL());             
             }
             return samples;
         }
    
         public string getRandomClientURL()
         {
+            if (clients.Count == 0)
+            {
+                return null;
+            }
             Random r = new Random();
             int randomIndex = r.Next(0, clients.Count);
             return clientURLs[randomIndex];

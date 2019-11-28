@@ -48,7 +48,6 @@ namespace Client
 
             //Setup the client singleton
             Console.WriteLine("Client obj at: " + clientURL);
-            Console.WriteLine("Creates connection to Server obj at: " + serverURL);
             ChannelServices.RegisterChannel(tcp, false);
             //RemotingConfiguration.RegisterWellKnownServiceType(
             //   typeof(ClientObj),
@@ -106,8 +105,6 @@ namespace Client
                     this.otherServerURLs.Add(servers[i]);
                 }
             }
-          
-
   
         }
 
@@ -181,11 +178,22 @@ namespace Client
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
                 {
-                 informOtherClients(meetingProposal, getClientsInSameHub(), false);
-                 informOtherClients(meetingProposal, getSampleClients(), true);
+                    List<string> clientInSameHuB = getClientsInSameHub();
+                    List<string> sampleClientsFromOtherServers = getSampleClients();
+                    Console.WriteLine("Clients in same hub:");
+                    foreach (string client in clientInSameHuB)
+                    {
+                        Console.WriteLine(client);
+                    }
+                    Console.WriteLine("Sample of clients from other servers: ");
+                    foreach (string client in sampleClientsFromOtherServers)
+                    {
+                        Console.WriteLine(client);  
+                    };
+                 informOtherClients(meetingProposal, clientInSameHuB, false);
+                 informOtherClients(meetingProposal, sampleClientsFromOtherServers, true);
     
                 }
-               
 
             }
             catch (Exception e)
@@ -199,17 +207,15 @@ namespace Client
 
         private void informOtherClients(IMeetingServices meetingProposal, List<string> clientURLs, bool forwardMeeting)
         {
-            List<IClientServices> clients = new List<IClientServices>();
+            List<ClientObj> clients = new List<ClientObj>();
             foreach (string URL in clientURLs){
-                Console.WriteLine("Making client object with URL: " + URL);
                 ClientObj client = (ClientObj)Activator.GetObject(
                 typeof(ClientObj),
                 URL);
                 clients.Add(client);
             }
-            foreach (IClientServices client in clients)
+            foreach (ClientObj client in clients)
             {
-                Console.WriteLine("Looping client and receive");
                 client.receiveNewMeeting(meetingProposal, forwardMeeting);
                 
             }
@@ -217,14 +223,20 @@ namespace Client
 
         public void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting)
         {
-            Console.WriteLine("Reached receiveNewMeeting-method");
-            meetingsClientKnows.Add(meetingProposal);
-            Console.WriteLine("Meetingproposal received");
+            if (!meetingsClientKnows.Contains(meetingProposal)){
+                meetingsClientKnows.Add(meetingProposal);
+            }
+            
+            Console.WriteLine("Meetingproposal received. I am "+ this.userName );
             if (forwardMeeting)
             {
                 try
                 {
-                    List<string> clientsFromSameServer = myServer.getOwnClients();
+                    List<string> clientsFromSameServer = getClientsInSameHub();
+                    foreach (string client in clientsFromSameServer)
+                    {
+                        Console.WriteLine("I am client " + this.userName +"    CLient from same server" + client);
+                    }
                     informOtherClients(meetingProposal, clientsFromSameServer, false);
                 }
                 catch (Exception e)
@@ -245,7 +257,11 @@ namespace Client
                     clientsInSameHub.Remove(this.myURL);
 
                 }
-                Console.WriteLine("Clients in same hub:   "+ clientsInSameHub);
+                Console.WriteLine("Clients in same hub:   ");
+                foreach (string client in clientsInSameHub)
+                {
+                    Console.WriteLine(client);
+                }
                 return clientsInSameHub;
             }
             catch(Exception e)
@@ -261,6 +277,11 @@ namespace Client
             try
             {
                 List<string> sample = myServer.getSampleClientsFromOtherServers();
+                Console.WriteLine("Clients from other servers:");
+                foreach (string client in sample)
+                {
+                    Console.WriteLine(client);
+                }
                 return sample;
             }catch (Exception e)
             {
