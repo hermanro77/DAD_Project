@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting;
@@ -67,9 +68,7 @@ namespace Client
             //Set up other servers
             this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
 
-            //this.RunScript(scriptFileName);
-        
-            
+            this.RunScript(scriptFileName);
         }
 
         private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
@@ -104,22 +103,53 @@ namespace Client
 
         public void RunScript(string scriptFileName)
         {
-            
+            CultureInfo ci = new CultureInfo("pt-PT");
             string[] command;
-            StreamReader script = new StreamReader(scriptFileName);
-            while((command = script.ReadLine().Split(',')) != null)
+            string[] lines = System.IO.File.ReadAllLines(scriptFileName);
+            foreach(String line in lines)
             {
+                command = line.Split(' ');
                 switch (command[0])
                 {
                     case "list":
                         this.ListMeetings();
                         break;
                     case "create":
-                        this.createMeeting(command[1], Int32.Parse(command[2]),
-                            this.ParseDateLoc(command, Int32.Parse(command[3])), this.ListInvitees(command));
+                        string topic = command[1];
+                        int minAttendees = Int32.Parse(command[2]);
+                        int numberOfSlots = Int32.Parse(command[3]);
+                        int numInvitees = Int32.Parse(command[4]);
+                        List<(string, DateTime)> dateLoc = new List<(string, DateTime)>();
+                        List<string> clientInvites = new List<string>();
+                        for (int i = 5; i < 5+numberOfSlots; i++)
+                        {
+                            string[] locDate = command[i].Split(',');
+                            dateLoc.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
+                        }
+                        if (numInvitees != 0)
+                        {
+                            for (int j = 5 + numberOfSlots; j < numInvitees; j++)
+                            {
+                                clientInvites.Add(command[j]);
+                            }
+                            
+                        } else
+                        {
+                            clientInvites = null;
+                        }
+                        this.createMeeting(topic, minAttendees,
+                            dateLoc, clientInvites);
                         break;
                     case "join":
-                        this.JoinMeeting(command[1], this.ParseDateLoc(command, Int32.Parse(command[2])));
+                        string meetingTopic = command[1];
+                        int numSlots = Int32.Parse(command[2]);
+                        List<(string, DateTime)> dateLoc2 = new List<(string, DateTime)>();
+                        for (int k = 3; k < 3+numSlots; k++)
+                        {
+                            string[] locDate = command[k].Split(',');
+                            dateLoc2.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
+                        }
+                        this.JoinMeeting(meetingTopic, dateLoc2);
                         break;
                     case "close":
                         this.closeMeetingProposal(command[1]);
@@ -131,6 +161,8 @@ namespace Client
                         break;
                 }
             }
+            Console.WriteLine("Please write something here");
+            Console.ReadLine();
         }
 
         private List<string> ListInvitees(string[] command)
@@ -189,7 +221,9 @@ namespace Client
     
                 }
 
+            myCreatedMeetings.Add(meetingTopic)
             }
+
             catch (Exception e)
             {
                 Console.WriteLine(e);
@@ -304,7 +338,7 @@ namespace Client
             {
                 try
                 {
-                    myServer.closeMeetingProposal(meetingTopic, this.userName);
+                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);
