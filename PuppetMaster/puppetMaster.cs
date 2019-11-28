@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 using System.Net;
-using System.Diagnostics;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting;
 using System.Threading;
-using System.Web;
 using System.Net.Sockets;
+using MeetingCalendar;
+using System.IO;
 
 namespace PuppetMaster
 {
@@ -27,8 +24,7 @@ namespace PuppetMaster
         {
 
         }
-        List<string> PCS_URLs = new List<string>();
-        
+
         List<IServerServices> servers = new List<IServerServices>();
         List<string> serverURLs = new List<String>();
 
@@ -40,61 +36,21 @@ namespace PuppetMaster
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay, 
             string otherServerURL)
         {
+
             try
-                {
-
+            {
                 string[] URLsplit = URL.Split(':');
-                //sjekke om det er egen IP-adresse eller om localhost
-                if (URLsplit[1].Substring(2) == GetLocalIPAddress() || URLsplit[1].Substring(2) == "localhost")
-                {
-                    try
-                    {
-                        using (Process ServerProcess = new Process())
-                        {
+                IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/PCS");
+                
+                PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, otherServerURL);
 
-                            ServerProcess.StartInfo.FileName = "..\\..\\..\\Server\\bin\\Debug\\Server.exe";
-                            if (otherServerURL == "null") {
-                                otherServerURL = chooseNeighboorServer();
-                            }
-                            
-                            ServerProcess.StartInfo.Arguments = otherServerURL + " " + serverID + " " + URL + " " +
-                                max_faults.ToString() + " " +
-                                min_delay.ToString() + " " +
-                                max_delay.ToString();
-                            ServerProcess.Start();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Could not initiate new Server Process");
-                        Console.WriteLine(e.Message);
-                    }
-                }
-                else
-                { 
-                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1]+":10000/PCS");
-                                PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, chooseNeighboorServer());
-                }
-
-                if (servers.Count > 0) // if not first server
-                {
-                    foreach (IServerServices server in servers)
-                    {
-                        server.AddNewServer(URL);
-                    }
-                }
                 AddNewServerToList(URL);
                 serverURLs.Add(URL);
-
-                //update GUI
-                object[] serverstring = new object[1];
-                serverstring[0] = serverID + " at port " + getPortFromURL(URL);
-                // myForm.BeginInvoke(new InvokeDelegate(myForm.addServerListView), serverstring); uncomment when we want to add functionality for GUI
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                Console.WriteLine("PM did not manage to create server");
+                Console.WriteLine("Could not create server");
             }
         }
         public void createClient(string username, string clientURL, string serverURL, string scriptFilePath)
@@ -102,33 +58,12 @@ namespace PuppetMaster
             try
             {
                 string[] URLsplit = clientURL.Split(':');
-                //sjekke om det er egen IP-adresse (eller om localhost for å teste)
-                if (URLsplit[1].Substring(2) == GetLocalIPAddress() || URLsplit[1].Substring(2) == "localhost")
-                {
-                    using (Process ClientProcess = new Process())
-                    {
+                IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/PCS");
 
-                        ClientProcess.StartInfo.FileName = "..\\..\\..\\Client\\bin\\Debug\\Client.exe";
-                        ClientProcess.StartInfo.Arguments = username + " " + clientURL + " " + serverURL + " " +
-                            scriptFilePath;
-                        ClientProcess.Start();
-                    }
-                }
-                else
-                {
-                    IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[1] + ":10000/PCS");
-                    PCS.createClient(username, clientURL, serverURL, scriptFilePath);
-
-                }
+                PCS.createClient(username, clientURL, serverURL, scriptFilePath); 
 
                 addClientToList(clientURL);
                 clientURLs.Add(clientURL);
-                
-                //Update GUI
-                object[] clientstring = new object[1];
-                clientstring[0] = username + " at port " + getPortFromURL(clientURL);
-                //myForm.BeginInvoke(new InvokeDelegate(myForm.addClientListView), clientstring); uncomment when we want GUI
-
             }
             catch (Exception e)
             {
@@ -201,7 +136,8 @@ namespace PuppetMaster
 
         public void crash(string serverId)
         {
-            foreach (IServerServices server in this.servers)
+            
+            foreach (ServerServices server in servers)
             {
                 if (server.getServerID() == serverId)
                 {
@@ -213,7 +149,7 @@ namespace PuppetMaster
 
         public void freeze(string serverId)
         {
-            foreach (IServerServices server in this.servers)
+            foreach (ServerServices server in servers)
             {
                 if (server.getServerID() == serverId)
                 {
@@ -224,7 +160,7 @@ namespace PuppetMaster
 
         public void unfreeze(string serverId)
         {
-            foreach (IServerServices server in this.servers)
+            foreach (ServerServices server in servers)
             {
                 if (server.getServerID() == serverId)
                 {
@@ -249,52 +185,100 @@ namespace PuppetMaster
 
             PuppetMaster PM = new PuppetMaster();
 
-            Console.WriteLine("Write commands" + Environment.NewLine + "Press <enter> to exit");
+            Console.WriteLine("Write commands or paste path to script file (has to be .txt)" + Environment.NewLine + "Press <enter> to exit");
             string command = Console.ReadLine();
-            do
+            if (command.Contains(".txt"))
             {
-                //Console.WriteLine("Command: {0}", command);
-                string[] com = command.Split(' ');
-
-                switch (com[0])
+                string[] com;
+                StreamReader script = new StreamReader(command);
+                while ((com = script.ReadLine().Split(',')) != null)
                 {
-                    case "AddRoom":
-                        PM.addRoom(com[1], Int32.Parse(com[2]), com[3]);
-                        break;
+                    switch (com[0])
+                    {
+                        case "AddRoom":
+                            PM.addRoom(com[1], Int32.Parse(com[2]), com[3]);
+                            break;
 
-                    case "Server":
-                        PM.createServer(com[1], com[2], Int32.Parse(com[3]), Int32.Parse(com[4]), Int32.Parse(com[5]), com[6]);
-                        break;
+                        case "Server":
+                            PM.createServer(com[1], com[2], Int32.Parse(com[3]), Int32.Parse(com[4]), Int32.Parse(com[5]), com[6]);
+                            break;
 
-                    case "Client":
-                        PM.createClient(com[1], com[2], com[3], com[4]);
-                        break;
+                        case "Client":
+                            PM.createClient(com[1], com[2], com[3], com[4]);
+                            break;
 
-                    case "Status":
-                        PM.Status();
-                        break;
+                        case "Status":
+                            PM.Status();
+                            break;
 
-                    case "Wait":
-                        PM.wait(Int32.Parse(com[1]));
-                        break;
+                        case "Wait":
+                            PM.wait(Int32.Parse(com[1]));
+                            break;
 
-                    case "Freeze":
+                        case "Freeze":
+                            PM.freeze(com[1]);
+                            break;
 
-                        break;
+                        case "Unfreeze":
+                            PM.unfreeze(com[1]);
+                            break;
 
-                    case "Unfreeze":
+                        case "Crash":
+                            PM.crash(com[1]);
+                            break;
 
-                        break;
-
-                    case "Crash":
-                        PM.crash(com[1]);
-                        break;
-
-                    default:
-                        break;
+                        default:
+                            break;
+                    }
                 }
-                command = Console.ReadLine();
-            } while (command != "");
+            }
+            else
+            {
+                do
+                {
+                    string[] com = command.Split(' ');
+
+                    switch (com[0])
+                    {
+                        case "AddRoom":
+                            PM.addRoom(com[1], Int32.Parse(com[2]), com[3]);
+                            break;
+
+                        case "Server":
+                            PM.createServer(com[1], com[2], Int32.Parse(com[3]), Int32.Parse(com[4]), Int32.Parse(com[5]), com[6]);
+                            break;
+
+                        case "Client":
+                            PM.createClient(com[1], com[2], com[3], com[4]);
+                            break;
+
+                        case "Status":
+                            PM.Status();
+                            break;
+
+                        case "Wait":
+                            PM.wait(Int32.Parse(com[1]));
+                            break;
+
+                        case "Freeze":
+                            PM.freeze(com[1]);
+                            break;
+
+                        case "Unfreeze":
+                            PM.unfreeze(com[1]);
+                            break;
+
+                        case "Crash":
+                            PM.crash(com[1]);
+                            break;
+
+                        default:
+                            break;
+                    }
+                    command = Console.ReadLine();
+                } while (command != "");
+            }
+            
             
         }
 

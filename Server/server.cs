@@ -26,6 +26,7 @@ namespace MeetingCalendar
         private string serverURL;
         private string serverID;
         private int max_faults;
+        private bool frozenMode = false;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -366,12 +367,21 @@ namespace MeetingCalendar
 
         public void freeze()
         {
-            // How can i freeze this server until it is woken again?
+            if (this.frozenMode == false)
+            {
+                this.frozenMode = true;
+                Monitor.Wait(this);
+            }
+            
         }
 
         public void unfreeze()
         {
-            // How can I unfreeze?
+            if (this.frozenMode == true)
+            {
+                this.frozenMode = false;
+                Monitor.Pulse(this);
+            }
         }
 
         static void Main(string[] args)

@@ -12,7 +12,7 @@ using System.Diagnostics;
 
 namespace ProcessCreationService
 {
-    public class ProcessCreationService : IProcessCreationService
+    public class ProcessCreationService : MarshalByRefObject, IProcessCreationService
     { 
         public ProcessCreationService()
         {
@@ -69,7 +69,6 @@ namespace ProcessCreationService
                 typeof(ProcessCreationService),
                 "PCS",
                 WellKnownObjectMode.Singleton);
-
             //Creates 3 servers and 2 client and set them up to know each other
             //ProcessCreationService pcs = new ProcessCreationService();
             //pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
@@ -80,7 +79,7 @@ namespace ProcessCreationService
             //pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
             //pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
 
-           
+
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
 
