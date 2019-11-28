@@ -43,6 +43,21 @@ namespace MeetingCalendar
             }
             
         }
+        private void initialize(string serverURL, string serverID, ServerServices serverObj)
+        {
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            Console.WriteLine("Server port when server initialized:" + endURL[0]);
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            //ChannelServices.RegisterChannel(channel, false);
+            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
+        }
+
 
         public void PrintStatus()
         {
@@ -130,21 +145,6 @@ namespace MeetingCalendar
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);
-        }
-
-        private void initialize(string serverURL, string serverID, ServerServices serverObj)
-        {
-            string[] partlyURL = serverURL.Split(':');
-            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            Console.WriteLine("Server port when server initialized:" + endURL[0]);
-            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
-            provider.TypeFilterLevel = TypeFilterLevel.Full;
-            IDictionary props = new Hashtable();
-            props["port"] = Int32.Parse(endURL[0]);
-            this.channel = new TcpChannel(props, null, provider);
-            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            //ChannelServices.RegisterChannel(channel, false);
-            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
         public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -255,13 +255,19 @@ namespace MeetingCalendar
         {
             lock (clients)
             {
-
                 if (!clients.ContainsKey(uname))
                 {
-                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                    try
+                    {
+                        IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
                     userURL);
-                    clients.Add(uname, cli);
-                    clientURLs.Add(userURL);
+                        clients.Add(uname, cli);
+                        clientURLs.Add(userURL);
+                    }catch (Exception e)
+                    {
+                        Console.WriteLine("HELLLOOOOOO" + e);
+                    }
+                    
                 }
             }
         }
@@ -270,15 +276,26 @@ namespace MeetingCalendar
         {
             List<string> samples = new List<string>();
          
+
             foreach (ServerServices server in otherServers)
             {
-                samples.Add(server.getRandomClientURL());       
+                string clientURL = server.getRandomClientURL();
+                Console.WriteLine(clientURL);
+                if (clientURL != null)
+                {
+                    samples.Add(clientURL);
+                }
+                Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL());             
             }
             return samples;
         }
    
         public string getRandomClientURL()
         {
+            if (clients.Count == 0)
+            {
+                return null;
+            }
             Random r = new Random();
             int randomIndex = r.Next(0, clients.Count);
             return clientURLs[randomIndex];
@@ -286,6 +303,11 @@ namespace MeetingCalendar
 
         public List<string> getOwnClients() {
 
+            Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
+            foreach (string URL in clientURLs)
+            {
+                Console.WriteLine(URL);
+            }
             return clientURLs;
         }
         public void AddRoom(string location, int capacity, string roomName)
