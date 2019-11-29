@@ -182,6 +182,7 @@ namespace PuppetMaster
                 typeof(PuppetMaster),
                 "PCS",
                 WellKnownObjectMode.Singleton);
+            
 
             PuppetMaster PM = new PuppetMaster();
 

@@ -17,6 +17,7 @@ namespace CommonTypes
                 string otherServerURLs);
             void createClient(string username, string clientURL, string serverURL, string scriptFilePath);
 
+            void serverKill(string serverId);
         }
 
         public interface IMeetingServices

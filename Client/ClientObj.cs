@@ -78,11 +78,13 @@ namespace Client
             {
                 for (int i = 0; i < maxFaults; i++)
                 {
-                    this.otherServerURLs.Add(servers[i]);
+                    int serverIndex = new Random().Next(0, maxFaults-1);
+                    
+                    this.otherServerURLs.Add(servers[serverIndex]);
 
                     ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
-                    servers[i]);
+                    servers[serverIndex]);
                     this.otherServers.Add(s);
                     s.NewClient(this.userName, clientURL);
                 }
@@ -91,11 +93,12 @@ namespace Client
             {
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    this.otherServerURLs.Add(servers[i]);
+                    int serverIndex = new Random().Next(0, maxFaults - 1);
+                    this.otherServerURLs.Add(servers[serverIndex]);
 
                     ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
-                    servers[i]);
+                    servers[serverIndex]);
                     this.otherServers.Add(s);
                     s.NewClient(this.userName, clientURL);
                 }
@@ -158,24 +161,23 @@ namespace Client
         private void wait(int delayTime)
         {
             // Not sure if works, temporary solution
-            System.Threading.Thread.Sleep(delayTime);
+            Thread.Sleep(delayTime);
         }
         private void createMeeting(string meetingTopic, int minAttendees,
             List<(string, DateTime)> slots, List<string> invitees)
         {
             try
             {
-            IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
+                IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
                 myServer.NewMeetingProposal(meetingProposal);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                this.changeServer();
+                changeServer();
+                createMeeting(meetingTopic, minAttendees, slots, invitees);
             }
-            // Create new meeting
-            // USE TRY-CATCH
         }
 
 
@@ -196,7 +198,8 @@ namespace Client
                 myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
             } catch (Exception e) {
                 Console.WriteLine(e);
-                this.changeServer();
+                changeServer();
+                JoinMeeting(meetingTopic, dateLoc);
             }
         }
 
@@ -211,6 +214,7 @@ namespace Client
                 {
                     Console.WriteLine(e);
                     changeServer();
+                    closeMeetingProposal(meetingTopic);
                 }
             }
         }
@@ -228,7 +232,8 @@ namespace Client
             {
                 Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
-                this.changeServer();
+                changeServer();
+                ListMeetings();
             }
         }
 
@@ -237,6 +242,13 @@ namespace Client
             if (this.otherServers.Count > 0)
             {
                 this.myServer = (ServerServices)otherServers[0];
+                otherServers.RemoveAt(0);
+                List<int> crashedServerIndexes = myServer.distributeMeetingsToFOtherServers();
+                myServer.notifyOtherServersToDistributeMeetings(crashedServerIndexes);
+            }
+            else
+            {
+                Console.WriteLine("No servers allive in the system. Can not perform request");
             }
         }
 

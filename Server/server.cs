@@ -39,11 +39,16 @@ namespace MeetingCalendar
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
             this.serverURL = serverURL;
             this.max_faults = max_faults;
-            if (otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
+            if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
             }
             
+        }
+
+        private void delayRandomTime()
+        {
+            Thread.Sleep(millSecWait);
         }
 
         public void PrintStatus()
@@ -89,6 +94,7 @@ namespace MeetingCalendar
 
         public string getServerID()
         {
+            delayRandomTime();
             return this.serverID;
         }
 
@@ -252,7 +258,45 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
-            meetings.Add(proposal);
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+            }
+        }
+
+        public List<int> distributeMeetingsToFOtherServers()
+        {
+            List<int> crashedServerIndexes = new List<int>();
+            for (int i = 0; i < max_faults; i++)
+            {
+                int serverIndex = rnd.Next(0, otherServers.Count);
+                foreach (IMeetingServices meeting in meetings)
+                {
+                    try
+                    {
+                        otherServers[serverIndex].NewMeetingProposal(meeting);
+                    }
+                    catch (Exception e)
+                    {
+                        crashedServerIndexes.Add(serverIndex);
+                    }
+                    
+                }
+                
+            }
+            return crashedServerIndexes;
+        }
+
+        public void notifyOtherServersToDistributeMeetings(List<int> crashedServerIndexes)
+        {
+            foreach (int serverIndex in crashedServerIndexes)
+            {
+                Servers.RemoveAt(serverIndex);
+            }
+            foreach (ServerServices server in Servers)
+            {
+                server.distributeMeetingsToFOtherServers();
+            }
         }
 
         public void NewClient(string uname, string userURL)
