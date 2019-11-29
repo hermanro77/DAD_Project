@@ -160,9 +160,10 @@ namespace Client
                     default:
                         break;
                 }
+                Console.WriteLine("Press any key for next command");
+                Console.ReadLine();
             }
-            Console.WriteLine("Please write something here");
-            Console.ReadLine();
+            
         }
 
         private List<string> ListInvitees(string[] command)

@@ -71,14 +71,14 @@ namespace ProcessCreationService
                 WellKnownObjectMode.Singleton);
 
             //Creates 3 servers and 1 client and set them up to know each other
-           // ProcessCreationService pcs = new ProcessCreationService();
-            //pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
-            //pcs.createServer("server2", "tcp://localhost:50012/server2", 3, 0, 0, "tcp://localhost:50000/server1");
-            //pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
+            ProcessCreationService pcs = new ProcessCreationService();
+            pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
+            pcs.createServer("server2", "tcp://localhost:50012/server2", 3, 0, 0, "tcp://localhost:50000/server1");
+            pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
 
-            //Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
-            //pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", @"C:\Users\Ingeborg\Documents\code\DAD_Project\Client\scriptFile.txt");
-            //pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
+            Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
+            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", @"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile.txt");
+            pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", @"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile2.txt");
 
             //Process[] processes = Process.GetProcessesByName("Server", "localhost");
             //foreach(Process process in processes)

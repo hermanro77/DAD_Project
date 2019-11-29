@@ -1,0 +1,4 @@
+create julebord 2 2 0 Lisboa,2019-04-12 Lisboa,2019-07-12
+list
+join julebord 1 Lisboa,2019-07-12
+list

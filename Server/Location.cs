@@ -9,11 +9,8 @@ namespace Server
 {
     class Location {
 
-        private readonly static String[] LOCATIONS = new String[5] { "PORTO", "LISBOA", "FARO", "COIMBRA",
-            "ÈVORA" };
-
+        private readonly static String[] LOCATIONS = new String[5] { "PORTO", "LISBOA", "FARO", "COIMBRA", "EVORA" };
         private Dictionary<String, List<Room>> rooms = new Dictionary<string, List<Room>>();
-
         //public Dictionary<String, List<Room>> GetRooms {
         //    get{ return rooms; }
         //}
