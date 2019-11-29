@@ -14,7 +14,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
-    public class ServerServices : MarshalByRefObject, IServerServices
+    public class ServerServices : MarshalByRefObject, IServerServices, IEquatable<ServerServices>
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> otherServers = new List<IServerServices>();
@@ -395,16 +395,18 @@ namespace MeetingCalendar
 
         public void serverKill()
         {
-            Process[] runningProcesses = Process.GetProcesses();
+            Process[] runningProcesses = Process.GetProcessesByName("Server");
             foreach (Process process in runningProcesses)
             {
-                foreach (ProcessModule module in process.Modules)
-                {
-                    if (module.FileName.Equals("Server.exe"))
-                    {
-                        process.Kill();
-                    }
-                }
+                process.Kill();
+                process.WaitForExit();
+                //foreach (ProcessModule module in process.Modules)
+                //{
+                //    if (module.FileName.Equals("Server.exe"))
+                //    {
+                //        process.Kill();
+                //    }
+                //}
             }
 
         }
@@ -414,7 +416,6 @@ namespace MeetingCalendar
             if (this.frozenMode == false)
             {
                 this.frozenMode = true;
-                Monitor.Wait(this);
             }
             
         }
@@ -424,8 +425,21 @@ namespace MeetingCalendar
             if (this.frozenMode == true)
             {
                 this.frozenMode = false;
-                Monitor.Pulse(this);
             }
+        }
+
+        public override bool Equals(object obj) => Equals(obj as ServerServices);
+        public override int GetHashCode() => (serverID).GetHashCode();
+
+        public bool Eqauls(ServerServices server)
+        {
+            if (server is null) return false;
+            return this.serverID == ((ServerServices)server).getServerID();
+        }
+        public bool Equals(ServerServices other)
+        {
+            if (other is null) return false;
+            return this.serverID == other.getServerID();
         }
 
         static void Main(string[] args)

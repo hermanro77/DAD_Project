@@ -9,11 +9,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 using System.Diagnostics;
+using System.Runtime.Serialization.Formatters;
+using System.Collections;
 
 namespace ProcessCreationService
 {
     public class ProcessCreationService : MarshalByRefObject, IProcessCreationService
-    { 
+    {
+        TcpChannel channel;
         public ProcessCreationService()
         {
 
@@ -63,12 +66,14 @@ namespace ProcessCreationService
 
         static void Main(string[] args)
         {
-            TcpChannel channel = new TcpChannel(10000);
-            ChannelServices.RegisterChannel(channel, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ProcessCreationService),
-                "PCS",
-                WellKnownObjectMode.Singleton);
+            ProcessCreationService pcs = new ProcessCreationService();
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = 10000;
+            pcs.channel = new TcpChannel(props, null, provider);
+            RemotingServices.Marshal(pcs, "ofTheRings", typeof(ProcessCreationService));
+
             //Creates 3 servers and 2 client and set them up to know each other
             //ProcessCreationService pcs = new ProcessCreationService();
             //pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");

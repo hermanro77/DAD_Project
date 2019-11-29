@@ -9,11 +9,15 @@ using System.Threading;
 using System.Net.Sockets;
 using MeetingCalendar;
 using System.IO;
+using System.Runtime.Serialization.Formatters;
+using System.Collections;
+using System.ComponentModel;
 
 namespace PuppetMaster
 {
-    class PuppetMaster
+    class PuppetMaster : MarshalByRefObject
     {
+        TcpChannel channel;
         private delegate void InvokeDelegate(string updateString);
         public Form1 myForm;
         public PuppetMaster(Form1 form)
@@ -36,11 +40,10 @@ namespace PuppetMaster
         public void createServer(string serverID, string URL, int max_faults, int min_delay, int max_delay, 
             string otherServerURL)
         {
-
             try
             {
                 string[] URLsplit = URL.Split(':');
-                IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/PCS");
+                IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/ofTheRings");
                 
                 PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, otherServerURL);
 
@@ -124,7 +127,14 @@ namespace PuppetMaster
         }
         public void AddNewServerToList(string serverURL)
         {
-            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
+            ServerServices server = (ServerServices)Activator.GetObject(typeof(ServerServices), serverURL);
+            try
+            {
+                server.PrintStatus();
+            } catch (Exception e)
+            {
+                Console.WriteLine("No connection to server: " + e);
+            }
             servers.Add(server);
         }
 
@@ -136,12 +146,26 @@ namespace PuppetMaster
 
         public void crash(string serverId)
         {
-            
-            foreach (ServerServices server in servers)
+            for (int i = 0; i < servers.Count; i++) 
             {
+                IServerServices server = servers[i];
                 if (server.getServerID() == serverId)
                 {
-                    server.serverKill();
+                    servers.Remove(server);
+                    try
+                    {
+                        server.serverKill();
+                    } catch (Win32Exception e)
+                    {
+                        Console.WriteLine("Killed the server: " + serverId);
+                    } catch (InvalidOperationException e1)
+                    {
+                        Console.WriteLine("KIlled the server, was invalidoperations");
+                    } catch (Exception e2)
+                    {
+                        Console.WriteLine("Killed the server, but another exception");
+                    }
+                    
                 }
             }
 
@@ -176,24 +200,24 @@ namespace PuppetMaster
 
         static void Main(string[] args)
         {
-            TcpChannel channel = new TcpChannel(10001);
-            ChannelServices.RegisterChannel(channel, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(PuppetMaster),
-                "PCS",
-                WellKnownObjectMode.Singleton);
-            
-
             PuppetMaster PM = new PuppetMaster();
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = 10001;
+            PM.channel = new TcpChannel(props, null, provider);
+            RemotingServices.Marshal(PM, "theLord", typeof(PuppetMaster));
 
             Console.WriteLine("Write commands or paste path to script file (has to be .txt)" + Environment.NewLine + "Press <enter> to exit");
             string command = Console.ReadLine();
             if (command.Contains(".txt"))
             {
                 string[] com;
-                StreamReader script = new StreamReader(command);
-                while ((com = script.ReadLine().Split(',')) != null)
+                string[] lines = System.IO.File.ReadAllLines(command);
+                foreach (string line in lines)
                 {
+                    com = line.Split(' ');
+                    Console.WriteLine("Executing command: " + line);
                     switch (com[0])
                     {
                         case "AddRoom":
@@ -231,6 +255,8 @@ namespace PuppetMaster
                         default:
                             break;
                     }
+                    Console.WriteLine("Press enter to execute next command in script...");
+                    Console.ReadLine();
                 }
             }
             else

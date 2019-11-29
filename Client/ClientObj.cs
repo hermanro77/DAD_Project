@@ -78,7 +78,7 @@ namespace Client
             {
                 for (int i = 0; i < maxFaults; i++)
                 {
-                    int serverIndex = new Random().Next(0, maxFaults-1);
+                    int serverIndex = new Random().Next(0, maxFaults);
                     
                     this.otherServerURLs.Add(servers[serverIndex]);
 
@@ -93,7 +93,7 @@ namespace Client
             {
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    int serverIndex = new Random().Next(0, maxFaults - 1);
+                    int serverIndex = new Random().Next(0, maxFaults);
                     this.otherServerURLs.Add(servers[serverIndex]);
 
                     ServerServices s = (ServerServices)Activator.GetObject(
