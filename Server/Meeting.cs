@@ -17,7 +17,7 @@ namespace MeetingCalendar
         private List<String> invitees;
         private List<(string, DateTime)> locDateOptions;
         private Dictionary<(string, DateTime), List<string>> participants = new Dictionary<(string, DateTime), List<string>>();
-        private Boolean closed;
+        private Boolean isClosed;
 
         public MeetingServices(String username, String topic, int minParticipants, List<(string, DateTime)> slots, List<string> invitees)
         {
@@ -26,19 +26,23 @@ namespace MeetingCalendar
             this.minParticipants = minParticipants;
             this.locDateOptions = slots;
             this.invitees = invitees;
-            this.closed = false;
+            this.isClosed = false;
         }
 
         public string Topic { get => topic; }
+        public string CoordinatorUsername { get => coordinatorUsername; }
         public int MinParticipants { get => minParticipants; }
         public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
-        public Boolean Closed { set => closed = true; }
+        public Boolean GetIsClosed { get => isClosed; }
+        public Boolean IsClosed { set => isClosed = true; }
+        public Dictionary<(string, DateTime), List<string>> GetParticipants { get => participants; }
 
         public string getTopic()
         {
             return this.Topic;
         }
+       
         public bool IsInvited(string userName)
         {
             if (invitees == null)
@@ -51,7 +55,7 @@ namespace MeetingCalendar
 
         public void AddParticipantToSlot((string, DateTime) slot, string part)
         {
-            if (!this.closed)
+            if (!this.isClosed)
             {
                 if (participants.Keys.Contains(slot)) {
                     this.participants[slot].Add(part);
@@ -78,7 +82,7 @@ namespace MeetingCalendar
                 Console.WriteLine("Place: " + dateLoc.Item1 + ",  date: " + dateLoc.Item2.ToString("d"));
             }
             Console.WriteLine("Meeting topic: " + topic);
-            Console.WriteLine("Meeting closed: " + closed);
+            Console.WriteLine("Meeting closed: " + isClosed);
             //Console.WriteLine("Possible places and dates: ");
             foreach (KeyValuePair<(string, DateTime), List<string>> probMeeting in participants)
             {

@@ -357,7 +357,27 @@ namespace Client
                 List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
                 foreach (MeetingServices meeting in availableMeetings)
                 {
-                    meeting.printStatus();
+                    string topic = meeting.getTopic();
+                    List<(string, DateTime)> locDateOptions = meeting.LocDateOptions;
+                    string coordinatorUsername = meeting.CoordinatorUsername;
+                    bool isClosed = meeting.GetIsClosed;
+                    Dictionary<(string, DateTime), List<string>> participants = meeting.GetParticipants;
+
+                    Console.WriteLine("Dates and locations set by the coordinator: ");
+                    foreach ((string, DateTime) dateLoc in locDateOptions)
+                    {
+                        Console.WriteLine("Place: " + dateLoc.Item1 + ",  date: " + dateLoc.Item2.ToString("d"));
+                    }
+                    Console.WriteLine("Meeting topic: " + topic);
+                    Console.WriteLine("Meeting closed: " + isClosed);
+                    //Console.WriteLine("Possible places and dates: ");
+                    foreach (KeyValuePair<(string, DateTime), List<string>> probMeeting in participants)
+                    {
+                        Console.WriteLine("Location: " + probMeeting.Key.Item1 + ", Date: " + probMeeting.Key.Item2 +
+                            ", number of people who can attend at this date and place: " + probMeeting.Value.Count);
+                    }
+                    Console.WriteLine("Coordinator of meeting: " + coordinatorUsername);
+
                 }
             } catch (Exception e)
             {

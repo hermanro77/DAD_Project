@@ -226,7 +226,7 @@ namespace MeetingCalendar
                 
             }
             bestroom.BookedDates.Add(bestLocAndDate.Item2); //books room for the date in bestLocAndDate
-            meeting.Closed = true; 
+            meeting.IsClosed = true; 
             //this.meetings.Remove(meeting); Teacher said: "do not remove meeting after close"
             return true;
         }
