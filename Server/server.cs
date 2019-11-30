@@ -3,6 +3,7 @@ using Server;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -13,7 +14,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
-    public class ServerServices : MarshalByRefObject, IServerServices
+    public class ServerServices : MarshalByRefObject, IServerServices, IEquatable<ServerServices>
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> otherServers = new List<IServerServices>();
@@ -25,6 +26,7 @@ namespace MeetingCalendar
         private string serverURL;
         private string serverID;
         private int max_faults;
+        private bool frozenMode = false;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -37,7 +39,7 @@ namespace MeetingCalendar
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
             this.serverURL = serverURL;
             this.max_faults = max_faults;
-            if (otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
+            if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
             }
@@ -58,6 +60,11 @@ namespace MeetingCalendar
             RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
+
+        private void delayRandomTime()
+        {
+            Thread.Sleep(millSecWait);
+        }
 
         public void PrintStatus()
         {
@@ -98,6 +105,12 @@ namespace MeetingCalendar
         public string getServerURL()
         {
             return this.serverURL;
+        }
+
+        public string getServerID()
+        {
+            delayRandomTime();
+            return this.serverID;
         }
 
         public List<string> getOtherServerURLs()
@@ -248,7 +261,45 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
-            meetings.Add(proposal);
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+            }
+        }
+
+        public List<int> distributeMeetingsToFOtherServers()
+        {
+            List<int> crashedServerIndexes = new List<int>();
+            for (int i = 0; i < max_faults; i++)
+            {
+                int serverIndex = rnd.Next(0, otherServers.Count);
+                foreach (IMeetingServices meeting in meetings)
+                {
+                    try
+                    {
+                        otherServers[serverIndex].NewMeetingProposal(meeting);
+                    }
+                    catch (Exception e)
+                    {
+                        crashedServerIndexes.Add(serverIndex);
+                    }
+                    
+                }
+                
+            }
+            return crashedServerIndexes;
+        }
+
+        public void notifyOtherServersToDistributeMeetings(List<int> crashedServerIndexes)
+        {
+            foreach (int serverIndex in crashedServerIndexes)
+            {
+                Servers.RemoveAt(serverIndex);
+            }
+            foreach (ServerServices server in Servers)
+            {
+                server.distributeMeetingsToFOtherServers();
+            }
         }
 
         public void NewClient(string uname, string userURL)
@@ -367,6 +418,55 @@ namespace MeetingCalendar
             return availableMeetings;
         }
 
+        public void serverKill()
+        {
+            Process[] runningProcesses = Process.GetProcessesByName("Server");
+            foreach (Process process in runningProcesses)
+            {
+                process.Kill();
+                process.WaitForExit();
+                //foreach (ProcessModule module in process.Modules)
+                //{
+                //    if (module.FileName.Equals("Server.exe"))
+                //    {
+                //        process.Kill();
+                //    }
+                //}
+            }
+
+        }
+
+        public void freeze()
+        {
+            if (this.frozenMode == false)
+            {
+                this.frozenMode = true;
+            }
+            
+        }
+
+        public void unfreeze()
+        {
+            if (this.frozenMode == true)
+            {
+                this.frozenMode = false;
+            }
+        }
+
+        public override bool Equals(object obj) => Equals(obj as ServerServices);
+        public override int GetHashCode() => (serverID).GetHashCode();
+
+        public bool Eqauls(ServerServices server)
+        {
+            if (server is null) return false;
+            return this.serverID == ((ServerServices)server).getServerID();
+        }
+        public bool Equals(ServerServices other)
+        {
+            if (other is null) return false;
+            return this.serverID == other.getServerID();
+        }
+
         static void Main(string[] args)
         {
             
@@ -378,9 +478,5 @@ namespace MeetingCalendar
             Console.ReadLine();
         }
 
-        public List<string> getClients()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

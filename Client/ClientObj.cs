@@ -22,6 +22,7 @@ namespace Client
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> otherServers = new List<IServerServices>();
         ServerServices myServer;
         private string serverURL;
         private string myURL;
@@ -81,7 +82,7 @@ namespace Client
 
             if (servers.Count < 1) //No other servers yet
             {
-                throw new Exception("Can not find a new server to connect to"); 
+                //throw new Exception("Can not find a new server to connect to"); 
             }
             if (servers.Count >= maxFaults)
             {
@@ -191,7 +192,7 @@ namespace Client
         private void wait(int delayTime)
         {
             // Not sure if works, temporary solution
-            System.Threading.Thread.Sleep(delayTime);
+            Thread.Sleep(delayTime);
         }
         private void createMeeting(string meetingTopic, int minAttendees,
             List<(string, DateTime)> slots, List<string> invitees)
@@ -229,10 +230,9 @@ namespace Client
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                this.changeServer();
+                changeServer();
+                createMeeting(meetingTopic, minAttendees, slots, invitees);
             }
-            // Create new meeting
-            // USE TRY-CATCH
         }
 
         private void informOtherClients(IMeetingServices meetingProposal, List<string> clientURLs, bool forwardMeeting)
@@ -330,7 +330,9 @@ namespace Client
             } catch (Exception e) {
                 Console.WriteLine(e);
                 Console.WriteLine("CHANGING SERVER!");
-                this.changeServer();
+
+                changeServer();
+                JoinMeeting(meetingTopic, dateLoc);
             }
         }
 
@@ -346,6 +348,7 @@ namespace Client
                     Console.WriteLine(e);
                     Console.WriteLine("CHANGING SERVER!");
                     changeServer();
+                    closeMeetingProposal(meetingTopic);
                 }
             }
         }
@@ -364,7 +367,10 @@ namespace Client
                 Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
                 Console.WriteLine("CHANGING SERVER!");
-                this.changeServer();
+                changeServer();
+                ListMeetings();
+                
+               
             }
         }
 
@@ -376,7 +382,10 @@ namespace Client
                     typeof(ServerServices),
                    otherServerURLs[0]);
                 this.myServer = s;
+                otherServerURLs.Remove(0)
                 s.NewClient(this.userName, this.myURL);
+                List<int> crashedServerIndexes = myServer.distributeMeetingsToFOtherServers();
+                myServer.notifyOtherServersToDistributeMeetings(crashedServerIndexes);
             }
         }
 

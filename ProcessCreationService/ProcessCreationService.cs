@@ -9,11 +9,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 using System.Diagnostics;
+using System.Runtime.Serialization.Formatters;
+using System.Collections;
 
 namespace ProcessCreationService
 {
-    public class ProcessCreationService : IProcessCreationService
-    { 
+    public class ProcessCreationService : MarshalByRefObject, IProcessCreationService
+    {
+        TcpChannel channel;
         public ProcessCreationService()
         {
 
@@ -63,28 +66,25 @@ namespace ProcessCreationService
 
         static void Main(string[] args)
         {
-            TcpChannel channel = new TcpChannel(10000);
-            ChannelServices.RegisterChannel(channel, true);
-            RemotingConfiguration.RegisterWellKnownServiceType(
-                typeof(ProcessCreationService),
-                "PCS",
-                WellKnownObjectMode.Singleton);
-
-            //Creates 3 servers and 1 client and set them up to know each other
             ProcessCreationService pcs = new ProcessCreationService();
-            pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
-            pcs.createServer("server2", "tcp://localhost:50012/server2", 3, 0, 0, "tcp://localhost:50000/server1");
-            pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = 10000;
+            pcs.channel = new TcpChannel(props, null, provider);
+            RemotingServices.Marshal(pcs, "ofTheRings", typeof(ProcessCreationService));
 
-            Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
-            pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", @"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile.txt");
-            pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", @"C:\Users\larsm\Distribuerte\DAD_Project\Client\scriptFile2.txt");
+            //Creates 3 servers and 2 client and set them up to know each other
+            //ProcessCreationService pcs = new ProcessCreationService();
+            //pcs.createServer("server1", "tcp://localhost:50000/server1", 3, 0, 0, "null");
+            //pcs.createServer("server2", "tcp://localhost:50012/server2", 3, 0, 0, "tcp://localhost:50000/server1");
+            //pcs.createServer("server3", "tcp://localhost:50013/server3", 3, 0, 0, "tcp://localhost:50012/server2");
 
-            //Process[] processes = Process.GetProcessesByName("Server", "localhost");
-            //foreach(Process process in processes)
-            //{
-            //   Console.WriteLine(process.ProcessName);
-            //}
+            //Thread.Sleep(10000); //Waits for 10 seconds, needs to wait for server setup
+            //pcs.createClient("client1", "tcp://localhost:50001/client1", "tcp://localhost:50000/server1", "scriptFilePath");
+            //pcs.createClient("client2", "tcp://localhost:50002/client2", "tcp://localhost:50000/server1", "scriptFilePath");
+
+
             Console.WriteLine("<enter> to exit...");
             Console.ReadLine();
 
