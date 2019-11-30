@@ -23,10 +23,13 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
-        private string serverURL;
+        private string myServerURL;
         private string serverID;
         private int max_faults;
         private bool frozenMode = false;
+        private bool isSequencer;
+        private int seqNr;
+        private IServerServices sequencer;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -37,11 +40,16 @@ namespace MeetingCalendar
         {
             this.serverID = serverID;
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURL = serverURL;
+            this.myServerURL = serverURL;
             this.max_faults = max_faults;
             if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
+            }
+            else
+            {
+                isSequencer = true;
+                seqNr = 0;
             }
             
         }
@@ -69,7 +77,7 @@ namespace MeetingCalendar
         public void PrintStatus()
         {
             Console.WriteLine("I am " + serverID);
-            Console.WriteLine("URL: " + serverURL);
+            Console.WriteLine("URL: " + myServerURL);
             Console.WriteLine("Max faults: " + max_faults);
 
             string otherServers = "Other servers: ";
@@ -104,7 +112,7 @@ namespace MeetingCalendar
         }
         public string getServerURL()
         {
-            return this.serverURL;
+            return this.myServerURL;
         }
 
         public string getServerID()
@@ -158,6 +166,28 @@ namespace MeetingCalendar
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);
+            if (isSequencer)
+            {
+                server.setSequencer(myServerURL);
+            }
+        }
+        public void setSequencer(string sequencerURL)
+        {
+            if (sequencerURL == myServerURL)
+            {
+                isSequencer = true;
+                sequencer = null;
+                //TODO: Hvordan velge seq for ny sequencer? Burde vel være høyere enn sist brukte seqnr
+                seqNr = 0;
+            }
+            else
+            { 
+             IServerServices sequencerServer = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                           sequencerURL);
+            sequencer = sequencerServer;
+            isSequencer = false;
+            }
+         
         }
 
         public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -388,12 +418,6 @@ namespace MeetingCalendar
             }
         }
 
-        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
@@ -441,8 +465,7 @@ namespace MeetingCalendar
             if (this.frozenMode == false)
             {
                 this.frozenMode = true;
-            }
-            
+            }  
         }
 
         public void unfreeze()
@@ -465,6 +488,30 @@ namespace MeetingCalendar
         {
             if (other is null) return false;
             return this.serverID == other.getServerID();
+        }
+        // 0 is invalid seqnr
+        public int handOutSeqNumber()
+        {
+            if (isSequencer)
+            {
+                seqNr++;
+                return seqNr;
+            }
+            else { return 0; }
+
+        }
+        public void electNewSequencer()
+        {
+            Random r = new Random();
+            int randomIndex = r.Next(0, otherServerURLs.Count);
+            string newSequencerURL = otherServerURLs[randomIndex];
+
+            //TODO: Broadcast newSequencer. THIS MUST BE RELIABLE
+            foreach (IServerServices server in otherServers)
+            {
+                server.setSequencer(newSequencerURL);
+            }
+
         }
 
         static void Main(string[] args)

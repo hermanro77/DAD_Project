@@ -51,8 +51,8 @@ namespace CommonTypes
             void serverKill();
             void freeze();
             void unfreeze();
-
-
+            void setSequencer(string sequencerURL);
+            int handOutSeqNumber();
 
         }
     }

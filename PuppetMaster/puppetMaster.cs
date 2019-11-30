@@ -31,6 +31,7 @@ namespace PuppetMaster
 
         List<IServerServices> servers = new List<IServerServices>();
         List<string> serverURLs = new List<String>();
+        string sequencerURL;
 
         List<IClientServices> clients = new List<IClientServices>();
         List<string> clientURLs = new List<String>();
@@ -46,7 +47,6 @@ namespace PuppetMaster
                 IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/ofTheRings");
                 
                 PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, otherServerURL);
-
                 AddNewServerToList(URL);
                 serverURLs.Add(URL);
             }
