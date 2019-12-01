@@ -67,53 +67,34 @@ namespace Client
 
 
             //Set up other servers
-            this.setupOtherServers(myServer.getMaxFaults(), myServer, clientURL);
+            this.setupOtherServers(myServer.getMaxFaults(), myServer);
 
             this.RunScript(scriptFileName);
         }
 
-        private void setupOtherServers(int maxFaults, ServerServices server, string clientURL)
+        private void setupOtherServers(int maxFaults, ServerServices server)
         {
             List<string> servers = server.getOtherServerURLs();
-         
-           
-            Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
-        
 
-            if (servers.Count < 1) //No other servers yet
-            {
-                //throw new Exception("Can not find a new server to connect to"); 
-            }
+
+            Console.WriteLine("There are [" + servers.Count + "] servers in the system other than " + server.getServerURL());
+
             if (servers.Count >= maxFaults)
             {
                 for (int i = 0; i < maxFaults; i++)
                 {
-                    int serverIndex = new Random().Next(0, maxFaults);
-                    
-                    this.otherServerURLs.Add(servers[serverIndex]);
+                    this.otherServerURLs.Add(servers[i]);
 
-                    ServerServices s = (ServerServices)Activator.GetObject(
-                    typeof(ServerServices),
-                    servers[serverIndex]);
-                    this.otherServers.Add(s);
-                    s.NewClient(this.userName, clientURL);
                 }
             }
             else
             {
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    int serverIndex = new Random().Next(0, maxFaults);
-                    this.otherServerURLs.Add(servers[serverIndex]);
-
-                    ServerServices s = (ServerServices)Activator.GetObject(
-                    typeof(ServerServices),
-                    servers[serverIndex]);
-                    this.otherServers.Add(s);
-                    s.NewClient(this.userName, clientURL);
+                    this.otherServerURLs.Add(servers[i]);
                 }
             }
-  
+
         }
 
         public void RunScript(string scriptFileName)
