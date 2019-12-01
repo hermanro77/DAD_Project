@@ -22,6 +22,7 @@ namespace Client
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private List<string> otherServerURLs = new List<string>();
+        private List<ServerServices> otherServers = new List<ServerServices>();
         ServerServices myServer;
         private string serverURL;
         private string myURL;
@@ -123,6 +124,7 @@ namespace Client
             foreach(String line in lines)
             {
                 command = line.Split(' ');
+                Console.WriteLine(command[0]);
                 switch (command[0])
                 {
                     case "list":
@@ -214,7 +216,7 @@ namespace Client
             {
                 IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
-                myServer.NewMeetingProposal(meetingProposal);
+                myServer.NewMeetingProposal(meetingProposal, true);
 
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
@@ -353,7 +355,7 @@ namespace Client
             {
                 try
                 {
-                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName);
+                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName, true);
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);

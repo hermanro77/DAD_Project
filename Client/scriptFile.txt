@@ -1,5 +1,14 @@
-create myTopic2 2 1 0 Lisboa,2020-01-10
+create myTopic2 1 1 0 Lisboa,2020-01-10
+create myTop3 1 1 0 Lisboa,2021-01-10
 list
 join myTopic2 1 Lisboa,2020-01-10
-join julebord 2 Lisboa,2019-04-12 Lisboa,2019-07-12
+list
+close myTopic2
+join myTop3 1 Lisboa,2021-01-10
+close myTop3
+list
+create myTop4 1 1 0 Lisboa,2021-01-10
+join myTop4 1 Lisboa,2021-01-10
+close myTop4  
+list
 list

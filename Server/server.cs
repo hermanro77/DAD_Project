@@ -162,36 +162,18 @@ namespace MeetingCalendar
             otherServers.Add(server);
         }
 
-        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient)
         {
-
-            if (frozenMode)
+            
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                Task<bool> task = Task<bool>.Factory.StartNew(() => closeMeetingProposal(meetingTopic, coordinatorUsername));
-                pendingTasks.Add(task);
+                Console.WriteLine("Added task to pending list");
+                Task<bool> newTask = new Task<bool>(() => closeMeetingProposal(meetingTopic, coordinatorUsername, false));
+                pendingTasks.Add(newTask);
                 return false;
             }
-            else if (!frozenMode && pendingTasks.Count > 0){
-                Task<bool> task = Task<bool>.Factory.StartNew(() => closeMeetingProposal(meetingTopic, coordinatorUsername));
-                pendingTasks.Add(task);
-                bool b = false;
-                while (pendingTasks.Count > 0)
-                {
-                    Task t = pendingTasks[0];
-                    pendingTasks.RemoveAt(0);
-                    if (t.GetType().GetGenericTypeDefinition() == typeof(Task<bool>))
-                    {
-                        b = task.Result;
-                    }
-                    else
-                    {
-                        t.Start();
-                    }
-                    
-                }
-                return b;
-            }
-            else
+            
+            else 
             {
                 bool foundMeeting = false;
                 bool foundBestDateAndLocation = false;
@@ -290,24 +272,16 @@ namespace MeetingCalendar
             return ascendingRoomsByCapacity.Last(); 
         }
 
-        public void NewMeetingProposal(IMeetingServices proposal)
+        public void NewMeetingProposal(IMeetingServices proposal, bool requestCommingFromClient)
         {
-            if (frozenMode)
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                Task task = new Task(() => NewMeetingProposal(proposal));
-                pendingTasks.Add(task);
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => NewMeetingProposal(proposal, false));
+                pendingTasks.Add(newTask);
             }
-            else if (!frozenMode && pendingTasks.Count > 0)
-            {
-                while (pendingTasks.Count > 0)
-                {
-                    Task task = pendingTasks[0];
-                    pendingTasks.RemoveAt(0);
-                    task.Start();
-                }
-            }
-            
-            else if (!frozenMode && pendingTasks.Count <= 0)
+
+            else
             {
                 if (!meetings.Contains(proposal))
                 {
@@ -328,7 +302,7 @@ namespace MeetingCalendar
                 {
                     try
                     {
-                        otherServers[serverIndex].NewMeetingProposal(meeting);
+                        otherServers[serverIndex].NewMeetingProposal(meeting, true);
                     }
                     catch (Exception e)
                     {
@@ -365,13 +339,16 @@ namespace MeetingCalendar
                     userURL);
                         clients.Add(uname, cli);
                         clientURLs.Add(userURL);
-                    }catch (Exception e)
+                    }
+                    catch (Exception e)
                     {
                         Console.WriteLine("HELLLOOOOOO" + e);
                     }
-                    
+
                 }
             }
+            
+            
         }
     
         public List<string> getSampleClientsFromOtherServers()
@@ -422,19 +399,28 @@ namespace MeetingCalendar
         public void JoinMeeting(string meetingTopic, string userName,
             bool requesterIsClient, List<(string, DateTime)> dateLoc)
         {
-            foreach (MeetingServices meeting in meetings)
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requesterIsClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
-                {
-                    meeting.JoinMeeting(userName, dateLoc);
-                    break;
-                }
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => JoinMeeting(meetingTopic, userName, false, dateLoc));
+                pendingTasks.Add(newTask);
             }
-            if (requesterIsClient)
+            else
             {
-                foreach (IServerServices meetingServer in otherServers)
+                foreach (MeetingServices meeting in meetings)
                 {
-                    meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
+                    if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
+                    {
+                        meeting.JoinMeeting(userName, dateLoc);
+                        break;
+                    }
+                }
+                if (requesterIsClient)
+                {
+                    foreach (IServerServices meetingServer in otherServers)
+                    {
+                        meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
+                    }
                 }
             }
         }
@@ -470,14 +456,7 @@ namespace MeetingCalendar
             foreach (Process process in runningProcesses)
             {
                 process.Kill();
-                process.WaitForExit();
-                //foreach (ProcessModule module in process.Modules)
-                //{
-                //    if (module.FileName.Equals("Server.exe"))
-                //    {
-                //        process.Kill();
-                //    }
-                //}
+                process.WaitForExit(); // vil vi dette?
             }
 
         }
@@ -486,6 +465,7 @@ namespace MeetingCalendar
         {
             if (this.frozenMode == false)
             {
+                Console.WriteLine("turning on freeze mode");
                 this.frozenMode = true;
             }
             
@@ -495,7 +475,24 @@ namespace MeetingCalendar
         {
             if (this.frozenMode == true)
             {
+                Console.WriteLine("turning of freeze mode");
                 this.frozenMode = false;
+
+                int tasksRemaining = pendingTasks.Count;
+                while (tasksRemaining > 0)
+                {
+                    Console.WriteLine("Entered while");
+                    for (int i = 0; i < tasksRemaining; i++)
+                    {
+                        Thread.Sleep(10000);
+                        Console.WriteLine("executing task number " + i + " in pending");
+                        Task task = pendingTasks[i];
+                        task.Start();
+                    }
+                    pendingTasks.RemoveRange(0, tasksRemaining);
+                    tasksRemaining = pendingTasks.Count;
+                    Console.WriteLine("Tasks remaining: " + tasksRemaining);
+                }
             }
         }
 
@@ -523,6 +520,5 @@ namespace MeetingCalendar
             Console.WriteLine("<Enter> to exit...");
             Console.ReadLine();
         }
-
     }
 }

@@ -31,13 +31,13 @@ namespace CommonTypes
         public interface IServerServices
         {
             void NewClient(string userName, string userURL);
-            void NewMeetingProposal(IMeetingServices proposal);
+            void NewMeetingProposal(IMeetingServices proposal, bool requestCommingFromClient);
 
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
 
             List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
-            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient);
             void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL);
             List<string> getSampleClientsFromOtherServers();

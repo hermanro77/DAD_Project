@@ -72,7 +72,7 @@ namespace ProcessCreationService
             IDictionary props = new Hashtable();
             props["port"] = 10000;
             pcs.channel = new TcpChannel(props, null, provider);
-            RemotingServices.Marshal(pcs, "ofTheRings", typeof(ProcessCreationService));
+            RemotingServices.Marshal(pcs, "PCS", typeof(ProcessCreationService));
 
             //Creates 3 servers and 2 client and set them up to know each other
             //ProcessCreationService pcs = new ProcessCreationService();
