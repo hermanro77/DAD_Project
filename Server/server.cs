@@ -10,6 +10,7 @@ using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Serialization.Formatters;
 using System.Threading;
+using System.Threading.Tasks;
 using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
@@ -27,6 +28,7 @@ namespace MeetingCalendar
         private string serverID;
         private int max_faults;
         private bool frozenMode = false;
+        List<Task> pendingTasks = new List<Task>();
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -162,40 +164,69 @@ namespace MeetingCalendar
 
         public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername)
         {
-            bool foundMeeting = false;
-            bool foundBestDateAndLocation = false;
-            //One server solution
-            foreach (MeetingServices meeting in this.meetings)
-            {
 
-                if (meeting.Topic == meetingTopic)
-                {
-                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                    foundMeeting = true;
-                }
-                
-            }
-            //checks for meeting in other servers if meeting not in this server (multiple servers solution)
-            if (!foundMeeting)
+            if (frozenMode)
             {
-                foreach (IServerServices server in otherServers)
+                Task<bool> task = Task<bool>.Factory.StartNew(() => closeMeetingProposal(meetingTopic, coordinatorUsername));
+                pendingTasks.Add(task);
+                return false;
+            }
+            else if (!frozenMode && pendingTasks.Count > 0){
+                Task<bool> task = Task<bool>.Factory.StartNew(() => closeMeetingProposal(meetingTopic, coordinatorUsername));
+                pendingTasks.Add(task);
+                bool b = false;
+                while (pendingTasks.Count > 0)
                 {
-                    foreach (MeetingServices meeting in server.getMeetings())
+                    Task t = pendingTasks[0];
+                    pendingTasks.RemoveAt(0);
+                    if (t.GetType().GetGenericTypeDefinition() == typeof(Task<bool>))
                     {
-                        if (meeting.Topic == meetingTopic) //finds the unique meeting
+                        b = task.Result;
+                    }
+                    else
+                    {
+                        t.Start();
+                    }
+                    
+                }
+                return b;
+            }
+            else
+            {
+                bool foundMeeting = false;
+                bool foundBestDateAndLocation = false;
+                //One server solution
+                foreach (MeetingServices meeting in this.meetings)
+                {
+
+                    if (meeting.Topic == meetingTopic)
+                    {
+                        foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                        foundMeeting = true;
+                    }
+
+                }
+                //checks for meeting in other servers if meeting not in this server (multiple servers solution)
+                if (!foundMeeting)
+                {
+                    foreach (IServerServices server in otherServers)
+                    {
+                        foreach (MeetingServices meeting in server.getMeetings())
                         {
-                            foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                            foundMeeting = true;
+                            if (meeting.Topic == meetingTopic) //finds the unique meeting
+                            {
+                                foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                                foundMeeting = true;
+                            }
                         }
                     }
                 }
+                if (!foundMeeting || !foundBestDateAndLocation)
+                {
+                    return false; //could not find unique meeting or it did not exist a date and location that fitted
+                }
+                return true; //closed meeting
             }
-            if (!foundMeeting || !foundBestDateAndLocation)
-            {
-                return false; //could not find unique meeting or it did not exist a date and location that fitted
-            }
-            return true; //closed meeting
-
         }
 
         private bool findBestDateAndLocation(MeetingServices meeting)
@@ -258,10 +289,30 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
-            if (!meetings.Contains(proposal))
+            if (frozenMode)
             {
-                meetings.Add(proposal);
+                Task task = new Task(() => NewMeetingProposal(proposal));
+                pendingTasks.Add(task);
             }
+            else if (!frozenMode && pendingTasks.Count > 0)
+            {
+                while (pendingTasks.Count > 0)
+                {
+                    Task task = pendingTasks[0];
+                    pendingTasks.RemoveAt(0);
+                    task.Start();
+                }
+            }
+            
+            else if (!frozenMode && pendingTasks.Count <= 0)
+            {
+                if (!meetings.Contains(proposal))
+                {
+                    meetings.Add(proposal);
+                }
+            }
+
+            
         }
 
         public List<int> distributeMeetingsToFOtherServers()
@@ -361,11 +412,6 @@ namespace MeetingCalendar
                     meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
                 }
             }
-        }
-
-        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
-        {
-            throw new NotImplementedException();
         }
 
 

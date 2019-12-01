@@ -160,7 +160,7 @@ namespace PuppetMaster
                         Console.WriteLine("Killed the server: " + serverId);
                     } catch (InvalidOperationException e1)
                     {
-                        Console.WriteLine("KIlled the server, was invalidoperations");
+                        Console.WriteLine("Killed the server, was invalidoperations");
                     } catch (Exception e2)
                     {
                         Console.WriteLine("Killed the server, but another exception");
