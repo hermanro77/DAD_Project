@@ -17,7 +17,7 @@ namespace MeetingCalendar
         private List<String> invitees;
         private List<(string, DateTime)> locDateOptions;
         private Dictionary<(string, DateTime), List<string>> participants = new Dictionary<(string, DateTime), List<string>>();
-        private Boolean isClosed;
+        public Boolean isClosed { get; set; }
 
         public MeetingServices(String username, String topic, int minParticipants, List<(string, DateTime)> slots, List<string> invitees)
         {
@@ -34,8 +34,6 @@ namespace MeetingCalendar
         public int MinParticipants { get => minParticipants; }
         public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
-        public Boolean GetIsClosed { get => isClosed; }
-        public Boolean IsClosed { set => isClosed = true; }
         public Dictionary<(string, DateTime), List<string>> GetParticipants { get => participants; }
 
         public string getTopic()
