@@ -9,6 +9,7 @@ namespace CommonTypes
         {
             
             void PrintStatus();
+            void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting);
         }
 
         public interface IProcessCreationService
