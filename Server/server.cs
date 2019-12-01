@@ -481,17 +481,14 @@ namespace MeetingCalendar
                 int tasksRemaining = pendingTasks.Count;
                 while (tasksRemaining > 0)
                 {
-                    Console.WriteLine("Entered while");
                     for (int i = 0; i < tasksRemaining; i++)
                     {
-                        Thread.Sleep(10000);
-                        Console.WriteLine("executing task number " + i + " in pending");
                         Task task = pendingTasks[i];
                         task.Start();
                     }
                     pendingTasks.RemoveRange(0, tasksRemaining);
                     tasksRemaining = pendingTasks.Count;
-                    Console.WriteLine("Tasks remaining: " + tasksRemaining);
+                    Console.WriteLine("Tasks remaining in pending list: " + tasksRemaining);
                 }
             }
         }
