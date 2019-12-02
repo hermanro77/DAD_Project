@@ -31,7 +31,6 @@ namespace PuppetMaster
 
         List<IServerServices> servers = new List<IServerServices>();
         List<string> serverURLs = new List<String>();
-        string sequencerURL;
 
         List<IClientServices> clients = new List<IClientServices>();
         List<string> clientURLs = new List<String>();

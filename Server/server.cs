@@ -34,7 +34,7 @@ namespace MeetingCalendar
         TcpChannel channel;
         private Random rnd = new Random();
 
-        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
+      
         public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
             int minWait, int maxWait)
         {
@@ -45,14 +45,19 @@ namespace MeetingCalendar
             if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
+                sequencer = otherServers[0];
+                isSequencer = false;
             }
             else
             {
+                //sets sequencer to be myself
                 isSequencer = true;
+                sequencer = null;
                 seqNr = 0;
+                
             }
-            
         }
+
         private void initialize(string serverURL, string serverID, ServerServices serverObj)
         {
             string[] partlyURL = serverURL.Split(':');
@@ -132,44 +137,42 @@ namespace MeetingCalendar
 
         private void setAllOtherServers(string otherServerURL)
         {
-            if (this.getServerURL() != otherServerURL)
+            if (this.myServerURL != otherServerURL)
             {
                 this.AddNewServer(otherServerURL);
             }
             IServerServices serverFromURL = (IServerServices)Activator.GetObject(typeof(IServerServices),
                 otherServerURL);
-            
+            serverFromURL.AddNewServer(this.myServerURL);
             try
             {
                 foreach (string serverURL in serverFromURL.getOtherServerURLs())
                 {
                     if (serverURL != null && !otherServerURLs.Contains(serverURL))
                     {
-                        if (this.getServerURL() != serverURL)
+                        if (this.myServerURL != serverURL)
                         {
                             this.AddNewServer(serverURL);
                         }
                         
                         IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices),
                         serverURL);
-                        server.AddNewServer(this.getServerURL()); //adds this new server to the remote server
+                        server.AddNewServer(this.myServerURL); //adds this new server to the remote server
                     }
                 }
             }catch(Exception e)
             {
                 Console.WriteLine(e);
             }
-            serverFromURL.AddNewServer(this.getServerURL());
+            
         }
+
         public void AddNewServer(string serverURL)
         {
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);
-            if (isSequencer)
-            {
-                server.setSequencer(myServerURL);
-            }
+            
         }
         public void setSequencer(string sequencerURL)
         {
@@ -177,7 +180,6 @@ namespace MeetingCalendar
             {
                 isSequencer = true;
                 sequencer = null;
-                //TODO: Hvordan velge seq for ny sequencer? Burde vel være høyere enn sist brukte seqnr
                 seqNr = 0;
             }
             else
