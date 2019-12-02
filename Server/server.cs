@@ -3,6 +3,7 @@ using Server;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -13,7 +14,7 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
-    public class ServerServices : MarshalByRefObject, IServerServices
+    public class ServerServices : MarshalByRefObject, IServerServices, IEquatable<ServerServices>
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
         private List<IServerServices> otherServers = new List<IServerServices>();
@@ -22,9 +23,13 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
-        private string serverURL;
+        private string myServerURL;
         private string serverID;
         private int max_faults;
+        private bool frozenMode = false;
+        private bool isSequencer;
+        private int seqNr;
+        private IServerServices sequencer;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -35,11 +40,16 @@ namespace MeetingCalendar
         {
             this.serverID = serverID;
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURL = serverURL;
+            this.myServerURL = serverURL;
             this.max_faults = max_faults;
-            if (otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
+            if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
+            }
+            else
+            {
+                isSequencer = true;
+                seqNr = 0;
             }
             
         }
@@ -59,10 +69,15 @@ namespace MeetingCalendar
         }
 
 
+        private void delayRandomTime()
+        {
+            Thread.Sleep(millSecWait);
+        }
+
         public void PrintStatus()
         {
             Console.WriteLine("I am " + serverID);
-            Console.WriteLine("URL: " + serverURL);
+            Console.WriteLine("URL: " + myServerURL);
             Console.WriteLine("Max faults: " + max_faults);
 
             string otherServers = "Other servers: ";
@@ -97,7 +112,13 @@ namespace MeetingCalendar
         }
         public string getServerURL()
         {
-            return this.serverURL;
+            return this.myServerURL;
+        }
+
+        public string getServerID()
+        {
+            delayRandomTime();
+            return this.serverID;
         }
 
         public List<string> getOtherServerURLs()
@@ -145,6 +166,28 @@ namespace MeetingCalendar
             otherServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             otherServers.Add(server);
+            if (isSequencer)
+            {
+                server.setSequencer(myServerURL);
+            }
+        }
+        public void setSequencer(string sequencerURL)
+        {
+            if (sequencerURL == myServerURL)
+            {
+                isSequencer = true;
+                sequencer = null;
+                //TODO: Hvordan velge seq for ny sequencer? Burde vel være høyere enn sist brukte seqnr
+                seqNr = 0;
+            }
+            else
+            { 
+             IServerServices sequencerServer = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                           sequencerURL);
+            sequencer = sequencerServer;
+            isSequencer = false;
+            }
+         
         }
 
         public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -248,7 +291,45 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
-            meetings.Add(proposal);
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+            }
+        }
+
+        public List<int> distributeMeetingsToFOtherServers()
+        {
+            List<int> crashedServerIndexes = new List<int>();
+            for (int i = 0; i < max_faults; i++)
+            {
+                int serverIndex = rnd.Next(0, otherServers.Count);
+                foreach (IMeetingServices meeting in meetings)
+                {
+                    try
+                    {
+                        otherServers[serverIndex].NewMeetingProposal(meeting);
+                    }
+                    catch (Exception e)
+                    {
+                        crashedServerIndexes.Add(serverIndex);
+                    }
+                    
+                }
+                
+            }
+            return crashedServerIndexes;
+        }
+
+        public void notifyOtherServersToDistributeMeetings(List<int> crashedServerIndexes)
+        {
+            foreach (int serverIndex in crashedServerIndexes)
+            {
+                Servers.RemoveAt(serverIndex);
+            }
+            foreach (ServerServices server in Servers)
+            {
+                server.distributeMeetingsToFOtherServers();
+            }
         }
 
         public void NewClient(string uname, string userURL)
@@ -266,8 +347,7 @@ namespace MeetingCalendar
                     }catch (Exception e)
                     {
                         Console.WriteLine("HELLLOOOOOO" + e);
-                    }
-                    
+                    }  
                 }
             }
         }
@@ -337,12 +417,6 @@ namespace MeetingCalendar
             }
         }
 
-        public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
@@ -367,6 +441,146 @@ namespace MeetingCalendar
             return availableMeetings;
         }
 
+        public void serverKill()
+        {
+            Process[] runningProcesses = Process.GetProcessesByName("Server");
+            foreach (Process process in runningProcesses)
+            {
+                process.Kill();
+                process.WaitForExit();
+                //foreach (ProcessModule module in process.Modules)
+                //{
+                //    if (module.FileName.Equals("Server.exe"))
+                //    {
+                //        process.Kill();
+                //    }
+                //}
+            }
+
+        }
+
+        public void freeze()
+        {
+            if (this.frozenMode == false)
+            {
+                this.frozenMode = true;
+            }  
+        }
+
+        public void unfreeze()
+        {
+            if (this.frozenMode == true)
+            {
+                this.frozenMode = false;
+            }
+        }
+
+        public override bool Equals(object obj) => Equals(obj as ServerServices);
+        public override int GetHashCode() => (serverID).GetHashCode();
+
+        public bool Eqauls(ServerServices server)
+        {
+            if (server is null) return false;
+            return this.serverID == ((ServerServices)server).getServerID();
+        }
+        public bool Equals(ServerServices other)
+        {
+            if (other is null) return false;
+            return this.serverID == other.getServerID();
+        }
+       
+        public void InformSeqFailed()
+        {
+            foreach (IServerServices server in otherServers)
+            {
+                try
+                {
+                    electNewSequencer(sequencer);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Did not succeed in informing about sequencer failed:  " + e);
+                }  
+            }
+        }
+
+        public void electNewSequencer(IServerServices failedServer)
+        {
+            if (failedServer.Equals(sequencer)) { 
+                 //be sure list of other servers is up to date
+                   RemoveFailedServer(failedServer);
+                   sequencer = otherServers[0];
+                if (sequencer.Equals(this))
+             {
+                prepareToBeSequencer();
+            }
+            }
+            
+        }
+        private void prepareToBeSequencer()
+        {
+            isSequencer = true;
+            int maxSeqNr = 0;
+            foreach (IServerServices server in otherServers)
+            {
+                try
+                {
+                     int tempMaxSeqNr = server.getHighestSeqNr();
+                    if (tempMaxSeqNr > maxSeqNr)
+                    {
+                        maxSeqNr = tempMaxSeqNr;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server did not respond when getting highestSeqNr. Error message:  "+ e);
+                    RemoveFailedServer(server);
+                }
+            }
+            seqNr = maxSeqNr;
+        }
+
+        public int getHighestSeqNr()
+        {
+            List<int> pendingTasks = new List<int>();
+            int maxSeqNr = pendingTasks.Max();
+            return maxSeqNr;
+        }
+
+        // 0 is invalid seqnr
+        public int handOutSeqNumber()
+        {
+            if (isSequencer)
+            {
+                seqNr++;
+                return seqNr;
+            }
+            else { return 0; }
+        }
+
+        //Should removeFailedServer be highest priority?
+        //possible to use both server and serverURL to remove from both lists
+        private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null) 
+        {
+            if (failedServer != null)
+            {
+                if (otherServers.Contains(failedServer))
+                {
+                    int index = otherServers.IndexOf(failedServer); 
+                    otherServers.RemoveAt(index);
+                    otherServerURLs.RemoveAt(index);
+                }
+            }
+            else if (failedServerURL != null)
+            {
+                if (otherServerURLs.Contains(failedServerURL)){
+                    int index = otherServerURLs.IndexOf(failedServerURL);
+                    otherServers.RemoveAt(index);
+                    otherServerURLs.RemoveAt(index);
+                }
+            }
+        }
+
         static void Main(string[] args)
         {
             
@@ -378,9 +592,5 @@ namespace MeetingCalendar
             Console.ReadLine();
         }
 
-        public List<string> getClients()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
