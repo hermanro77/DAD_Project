@@ -30,15 +30,15 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewClient(string userName, string userURL);
-            void NewMeetingProposal(IMeetingServices proposal);
+            void NewClient(string userName, string userURL, int sequenceNumber);
+            void NewMeetingProposal(IMeetingServices proposal, int sequenceNumber = -1);
 
             void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber);
 
             List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, int sequenceNumber);
-            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, int sequenceNumber);
             void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
-            void AddNewServer(string URL);
+            void AddNewServer(string URL, int sequenceNumber = -1);
             List<string> getSampleClientsFromOtherServers(int sequenceNumber);
             List<string> getOwnClients(int sequenceNumber);
             string getRandomClientURL(int sequenceNumber);

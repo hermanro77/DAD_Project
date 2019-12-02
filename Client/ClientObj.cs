@@ -63,7 +63,7 @@ namespace Client
             this.myServer = (ServerServices)Activator.GetObject(
             typeof(ServerServices),
             serverURL);
-            myServer.NewClient(this.userName, clientURL, true);
+            myServer.NewClient(this.userName, clientURL);
 
 
             //Set up other servers
@@ -197,7 +197,7 @@ namespace Client
             {
                 IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
-                myServer.NewMeetingProposal(meetingProposal, true);
+                myServer.NewMeetingProposal(meetingProposal);
 
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
@@ -277,7 +277,7 @@ namespace Client
         {
             try
             {
-               List<string> clientsInSameHub = myServer.getOwnClients(true);
+               List<string> clientsInSameHub = myServer.getOwnClients();
                 if (clientsInSameHub.Contains(this.myURL))
                 {
                     clientsInSameHub.Remove(this.myURL);
@@ -322,7 +322,7 @@ namespace Client
         {
             try
             {
-                myServer.JoinMeeting(meetingTopic, this.userName, true, dateLoc);
+                myServer.JoinMeeting(meetingTopic, this.userName, dateLoc);
             } catch (Exception e) {
                 Console.WriteLine(e);
                 changeServer();
@@ -336,7 +336,7 @@ namespace Client
             {
                 try
                 {
-                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName, true);
+                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName);
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);
