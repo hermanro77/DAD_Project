@@ -30,7 +30,7 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewClient(string userName, string userURL);
+            void NewClient(string userName, string userURL, bool requestCommingFromClient);
             void NewMeetingProposal(IMeetingServices proposal, bool requestCommingFromClient);
 
             void JoinMeeting(string meetingTopic, string userName, 
@@ -39,9 +39,9 @@ namespace CommonTypes
             List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient);
             void AddRoom(string location, int capacity, string roomName);
-            void AddNewServer(string URL);
+            void AddNewServer(string URL, bool requestCommingFromClient = false);
             List<string> getSampleClientsFromOtherServers();
-            List<string> getOwnClients();
+            List<string> getOwnClients(bool requestCommingFromClient = false);
             string getRandomClientURL();
             void PrintStatus();
             List<IMeetingServices> getMeetings();

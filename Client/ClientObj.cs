@@ -63,7 +63,7 @@ namespace Client
             this.myServer = (ServerServices)Activator.GetObject(
             typeof(ServerServices),
             serverURL);
-            myServer.NewClient(this.userName, clientURL);
+            myServer.NewClient(this.userName, clientURL, true);
 
 
             //Set up other servers
@@ -277,7 +277,7 @@ namespace Client
         {
             try
             {
-               List<string> clientsInSameHub = myServer.getOwnClients();
+               List<string> clientsInSameHub = myServer.getOwnClients(true);
                 if (clientsInSameHub.Contains(this.myURL))
                 {
                     clientsInSameHub.Remove(this.myURL);

@@ -155,14 +155,24 @@ namespace MeetingCalendar
             }
             serverFromURL.AddNewServer(this.getServerURL());
         }
-        public void AddNewServer(string serverURL)
+        public void AddNewServer(string serverURL, bool requestCommingFromClient = false)
         {
-            otherServerURLs.Add(serverURL);
-            IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
-            otherServers.Add(server);
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
+            {
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => AddNewServer(serverURL, false));
+                pendingTasks.Add(newTask);
+            }
+            else
+            {
+                otherServerURLs.Add(serverURL);
+                IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
+                otherServers.Add(server);
+            }
+            
         }
 
-        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient)
+        public bool closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient = false)
         {
             
             if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
@@ -292,27 +302,38 @@ namespace MeetingCalendar
             
         }
 
-        public List<int> distributeMeetingsToFOtherServers()
+        public List<int> distributeMeetingsToFOtherServers(bool requestCommingFromClient)
         {
-            List<int> crashedServerIndexes = new List<int>();
-            for (int i = 0; i < max_faults; i++)
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                int serverIndex = rnd.Next(0, otherServers.Count);
-                foreach (IMeetingServices meeting in meetings)
-                {
-                    try
-                    {
-                        otherServers[serverIndex].NewMeetingProposal(meeting, true);
-                    }
-                    catch (Exception e)
-                    {
-                        crashedServerIndexes.Add(serverIndex);
-                    }
-                    
-                }
-                
+                Console.WriteLine("Added task to pending list");
+                Task<List<int>> newTask = new Task<List<int>>(() => distributeMeetingsToFOtherServers(false));
+                pendingTasks.Add(newTask);
+                return new List<int>();
             }
-            return crashedServerIndexes;
+            else
+            {
+                List<int> crashedServerIndexes = new List<int>();
+                for (int i = 0; i < max_faults; i++)
+                {
+                    int serverIndex = rnd.Next(0, otherServers.Count);
+                    foreach (IMeetingServices meeting in meetings)
+                    {
+                        try
+                        {
+                            otherServers[serverIndex].NewMeetingProposal(meeting, true);
+                        }
+                        catch (Exception e)
+                        {
+                            crashedServerIndexes.Add(serverIndex);
+                        }
+
+                    }
+
+                }
+                return crashedServerIndexes;
+            }
+            
         }
 
         public void notifyOtherServersToDistributeMeetings(List<int> crashedServerIndexes)
@@ -323,28 +344,38 @@ namespace MeetingCalendar
             }
             foreach (ServerServices server in Servers)
             {
-                server.distributeMeetingsToFOtherServers();
+                server.distributeMeetingsToFOtherServers(true);
             }
         }
 
-        public void NewClient(string uname, string userURL)
+        public void NewClient(string uname, string userURL, bool requestCommingFromClient)
         {
-            lock (clients)
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                if (!clients.ContainsKey(uname))
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => NewClient(uname, userURL, false));
+                pendingTasks.Add(newTask);
+                
+            }
+            else
+            {
+                lock (clients)
                 {
-                    try
+                    if (!clients.ContainsKey(uname))
                     {
-                        IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                    userURL);
-                        clients.Add(uname, cli);
-                        clientURLs.Add(userURL);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("HELLLOOOOOO" + e);
-                    }
+                        try
+                        {
+                            IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                        userURL);
+                            clients.Add(uname, cli);
+                            clientURLs.Add(userURL);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("HELLLOOOOOO" + e);
+                        }
 
+                    }
                 }
             }
             
@@ -380,8 +411,15 @@ namespace MeetingCalendar
             return clientURLs[randomIndex];
         }
 
-        public List<string> getOwnClients() {
+        public List<string> getOwnClients(bool requestCommingFromClient) {
 
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requestCommingFromClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
+            {
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => getOwnClients(false));
+                pendingTasks.Add(newTask);
+                return new List<string>();
+            }
             Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
             foreach (string URL in clientURLs)
             {
@@ -428,26 +466,36 @@ namespace MeetingCalendar
 
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
-            List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
-            foreach (MeetingServices meeting in intersectMeetings)
+            if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && requesterIsClient)) // if frozen or close request is made while the server is executing the tasks in his pending list
             {
-                if (meeting.IsInvited(userName) )
-                {
-                    availableMeetings.Add(meeting);
-                }
+                Console.WriteLine("Added task to pending list");
+                Task newTask = new Task(() => ListMeetings(userName, meetingClientKnows, false));
+                pendingTasks.Add(newTask);
+                return new List<IMeetingServices>();
             }
-            if (requesterIsClient)
+            else
             {
-                foreach (IServerServices server in otherServers)
+                List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
+                IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
+                foreach (MeetingServices meeting in intersectMeetings)
                 {
-                    foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+                    if (meeting.IsInvited(userName))
                     {
-                        availableMeetings.Add(meets);
+                        availableMeetings.Add(meeting);
                     }
                 }
+                if (requesterIsClient)
+                {
+                    foreach (IServerServices server in otherServers)
+                    {
+                        foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+                        {
+                            availableMeetings.Add(meets);
+                        }
+                    }
+                }
+                return availableMeetings;
             }
-            return availableMeetings;
         }
 
         public void serverKill()
