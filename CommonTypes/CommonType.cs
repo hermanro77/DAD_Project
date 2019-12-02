@@ -53,7 +53,7 @@ namespace CommonTypes
             void unfreeze();
             void setSequencer(string sequencerURL);
             int handOutSeqNumber();
-
+            int getHighestSeqNr();
         }
     }
 }

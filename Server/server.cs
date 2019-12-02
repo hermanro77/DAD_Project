@@ -347,8 +347,7 @@ namespace MeetingCalendar
                     }catch (Exception e)
                     {
                         Console.WriteLine("HELLLOOOOOO" + e);
-                    }
-                    
+                    }  
                 }
             }
         }
@@ -489,6 +488,65 @@ namespace MeetingCalendar
             if (other is null) return false;
             return this.serverID == other.getServerID();
         }
+       
+        public void InformSeqFailed()
+        {
+            foreach (IServerServices server in otherServers)
+            {
+                try
+                {
+                    electNewSequencer(sequencer);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Did not succeed in informing about sequencer failed:  " + e);
+                }  
+            }
+        }
+
+        public void electNewSequencer(IServerServices failedServer)
+        {
+            if (failedServer.Equals(sequencer)) { 
+                 //be sure list of other servers is up to date
+                   RemoveFailedServer(failedServer);
+                   sequencer = otherServers[0];
+                if (sequencer.Equals(this))
+             {
+                prepareToBeSequencer();
+            }
+            }
+            
+        }
+        private void prepareToBeSequencer()
+        {
+            isSequencer = true;
+            int maxSeqNr = 0;
+            foreach (IServerServices server in otherServers)
+            {
+                try
+                {
+                     int tempMaxSeqNr = server.getHighestSeqNr();
+                    if (tempMaxSeqNr > maxSeqNr)
+                    {
+                        maxSeqNr = tempMaxSeqNr;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server did not respond when getting highestSeqNr. Error message:  "+ e);
+                    RemoveFailedServer(server);
+                }
+            }
+            seqNr = maxSeqNr;
+        }
+
+        public int getHighestSeqNr()
+        {
+            List<int> pendingTasks = new List<int>();
+            int maxSeqNr = pendingTasks.Max();
+            return maxSeqNr;
+        }
+
         // 0 is invalid seqnr
         public int handOutSeqNumber()
         {
@@ -498,20 +556,29 @@ namespace MeetingCalendar
                 return seqNr;
             }
             else { return 0; }
-
         }
-        public void electNewSequencer()
+
+        //Should removeFailedServer be highest priority?
+        //possible to use both server and serverURL to remove from both lists
+        private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null) 
         {
-            Random r = new Random();
-            int randomIndex = r.Next(0, otherServerURLs.Count);
-            string newSequencerURL = otherServerURLs[randomIndex];
-
-            //TODO: Broadcast newSequencer. THIS MUST BE RELIABLE
-            foreach (IServerServices server in otherServers)
+            if (failedServer != null)
             {
-                server.setSequencer(newSequencerURL);
+                if (otherServers.Contains(failedServer))
+                {
+                    int index = otherServers.IndexOf(failedServer); 
+                    otherServers.RemoveAt(index);
+                    otherServerURLs.RemoveAt(index);
+                }
             }
-
+            else if (failedServerURL != null)
+            {
+                if (otherServerURLs.Contains(failedServerURL)){
+                    int index = otherServerURLs.IndexOf(failedServerURL);
+                    otherServers.RemoveAt(index);
+                    otherServerURLs.RemoveAt(index);
+                }
+            }
         }
 
         static void Main(string[] args)
