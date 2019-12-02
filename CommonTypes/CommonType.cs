@@ -54,6 +54,7 @@ namespace CommonTypes
             void setSequencer(string sequencerURL);
             int handOutSeqNumber();
             int getHighestSeqNr();
+            void electNewSequencer(IServerServices failedSequencer);
         }
     }
 }

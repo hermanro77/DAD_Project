@@ -495,28 +495,29 @@ namespace MeetingCalendar
             {
                 try
                 {
-                    electNewSequencer(sequencer);
+                    server.electNewSequencer(sequencer);
                 }
                 catch (Exception e)
                 {
+                    RemoveFailedServer(server);
                     Console.WriteLine("Did not succeed in informing about sequencer failed:  " + e);
                 }  
             }
         }
 
-        public void electNewSequencer(IServerServices failedServer)
+        public void electNewSequencer(IServerServices failedSequencer)
         {
-            if (failedServer.Equals(sequencer)) { 
+            if (failedSequencer.Equals(sequencer)) { 
                  //be sure list of other servers is up to date
-                   RemoveFailedServer(failedServer);
+                   RemoveFailedServer(failedSequencer);
                    sequencer = otherServers[0];
                 if (sequencer.Equals(this))
-             {
+                 {
                 prepareToBeSequencer();
-            }
-            }
-            
+                  }
+            }  
         }
+
         private void prepareToBeSequencer()
         {
             isSequencer = true;
