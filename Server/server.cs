@@ -210,6 +210,7 @@ namespace MeetingCalendar
                             {
                                 foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
                                 foundMeeting = true;
+                                break;
                             }
                         }
                     }
