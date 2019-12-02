@@ -70,6 +70,7 @@ namespace MeetingCalendar
 
         public void PrintStatus()
         {
+
             Console.WriteLine("I am " + serverID);
             Console.WriteLine("URL: " + serverURL);
             Console.WriteLine("Max faults: " + max_faults);
