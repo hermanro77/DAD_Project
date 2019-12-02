@@ -25,6 +25,7 @@ namespace MeetingCalendar
         private string serverURL;
         private string serverID;
         private int max_faults;
+        private int sqNum = 0;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -248,6 +249,7 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
+            // Distribute the meeting to f other servers
             meetings.Add(proposal);
         }
 
@@ -272,69 +274,142 @@ namespace MeetingCalendar
             }
         }
     
-        public List<string> getSampleClientsFromOtherServers()
+        public List<string> getSampleClientsFromOtherServers(int sequenceNumber = -1)
         {
             List<string> samples = new List<string>();
-         
-
+            if (sequenceNumber == -1)
+            {
+                sequenceNumber = this.sequenceServer.getSeqNum();
+            }
             foreach (ServerServices server in otherServers)
             {
-                string clientURL = server.getRandomClientURL();
+                string clientURL = server.getRandomClientURL(sequenceNumber);
                 Console.WriteLine(clientURL);
                 if (clientURL != null)
                 {
                     samples.Add(clientURL);
                 }
-                Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL());             
+                //Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL(sequenceNumber));
             }
-            return samples;
+            if (sequenceNumber == this.sqNum)
+            {
+                return new List<string>();
+            }
+            else if (sequenceNumber == this.sqNum + 1)
+            {
+                return samples;
+            }
+            else
+            {
+                // SET THIS TASK AS PENDING
+            }
+           
         }
    
-        public string getRandomClientURL()
+        public string getRandomClientURL(int sequenceNumber = -1)
         {
-            if (clients.Count == 0)
+            if (sequenceNumber == -1)
             {
+                sequenceNumber = this.sequenceServer.getSeqNum();
+            }
+            if (sequenceNumber == this.sqNum)
+            {
+                return "";
+            }
+            else if (sequenceNumber == this.sqNum + 1)
+            {
+                if (clients.Count == 0)
+                {
+                    return null;
+                }
+                int randomIndex = this.rnd.Next(0, clients.Count);
+                return clientURLs[randomIndex];
+            }
+            else
+            {
+                // SET THIS TASK AS PENDING
                 return null;
             }
-            Random r = new Random();
-            int randomIndex = r.Next(0, clients.Count);
-            return clientURLs[randomIndex];
+            
         }
 
-        public List<string> getOwnClients() {
-
-            Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
-            foreach (string URL in clientURLs)
+        public List<string> getOwnClients(int sequenceNumber = -1) {
+            if (sequenceNumber == -1)
             {
-                Console.WriteLine(URL);
+                sequenceNumber = this.sequenceServer.getSeqNum();
             }
-            return clientURLs;
+            if (sequenceNumber == this.sqNum)
+            {
+                return new List<string>();
+            }
+            else if (sequenceNumber == this.sqNum + 1)
+            {
+                Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
+                foreach (string URL in clientURLs)
+                {
+                    Console.WriteLine(URL);
+                }
+                this.sqNum += 1;
+                return clientURLs;
+            }
+            else
+            {
+                // SET THIS TASK AS PENDING
+            }
+            
         }
-        public void AddRoom(string location, int capacity, string roomName)
+        public void AddRoom(string location, int capacity, string roomName, int sequenceNumber = -1)
         {
-            Room newRoom = new Room(roomName, capacity);
-            this.location.addRoom(newRoom, location);
+            if (sequenceNumber == -1)
+            {
+                sequenceNumber = this.sequenceServer.getSeqNum();
+            }
+            else if (sequenceNumber == this.sqNum + 1)
+            {
+                Room newRoom = new Room(roomName, capacity);
+                this.location.addRoom(newRoom, location);
+                this.sqNum += 1;
+            }
+            else
+            {
+                // SET THIS ACTIVITY AS PENDING
+            }
+            
         }
           
 
-        public void JoinMeeting(string meetingTopic, string userName,
-            bool requesterIsClient, List<(string, DateTime)> dateLoc)
+        public void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber = -1)
         {
-            foreach (MeetingServices meeting in meetings)
+            if (sequenceNumber == -1)
             {
-                if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
-                {
-                    meeting.JoinMeeting(userName, dateLoc);
-                    break;
-                }
+                sequenceNumber = this.sequenceServer.getSeqNum();
             }
-            if (requesterIsClient)
+            foreach (IServerServices meetingServer in otherServers)
             {
-                foreach (IServerServices meetingServer in otherServers)
-                {
-                    meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
-                }
+                meetingServer.JoinMeeting(meetingTopic, userName, dateLoc, sequenceNumber);
             }
+            if (sequenceNumber <= this.sqNum)
+            {
+                return;
+            }
+            else if (sequenceNumber == this.sqNum+1)
+            {
+                foreach (MeetingServices meeting in meetings)
+                {
+                    if (meeting.Topic == meetingTopic && meeting.IsInvited(userName))
+                    {
+                        meeting.JoinMeeting(userName, dateLoc);
+                        break;
+                    }
+                }
+                
+                this.sqNum += 1;
+            }
+            else
+            {
+                // SET THIS AS PENDING
+            }
+            
         }
 
         public void CloseMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -342,29 +417,43 @@ namespace MeetingCalendar
             throw new NotImplementedException();
         }
 
-
-        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
+        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, int sequenceNumber = -1)
         {
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
-            IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
-            foreach (MeetingServices meeting in intersectMeetings)
+            if (sequenceNumber == -1)
             {
-                if (meeting.IsInvited(userName) )
+                sequenceNumber = this.sequenceServer.getSeqNum();
+            }
+
+            foreach (IServerServices server in otherServers)
+            {
+                foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, sequenceNumber))
                 {
-                    availableMeetings.Add(meeting);
+                    availableMeetings.Add(meets);
                 }
             }
-            if (requesterIsClient)
+
+            if (sequenceNumber <= this.sqNum)
             {
-                foreach (IServerServices server in otherServers)
+                return new List<IMeetingServices>();
+            } 
+            else if (sequenceNumber == this.sqNum +1)
+            {
+                IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
+                foreach (MeetingServices meeting in intersectMeetings)
                 {
-                    foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
+                    if (meeting.IsInvited(userName))
                     {
-                        availableMeetings.Add(meets);
+                        availableMeetings.Add(meeting);
                     }
                 }
+                this.sqNum += 1;
+                return availableMeetings;
+            }  else
+            {
+                // SET THIS AS A PENDING TASK!!
+                return null;
             }
-            return availableMeetings;
         }
 
         static void Main(string[] args)

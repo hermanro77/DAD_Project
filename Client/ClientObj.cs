@@ -354,7 +354,7 @@ namespace Client
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows, true);
+                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows);
                 foreach (MeetingServices meeting in availableMeetings)
                 {
                     meeting.printStatus();

@@ -33,16 +33,15 @@ namespace CommonTypes
             void NewClient(string userName, string userURL);
             void NewMeetingProposal(IMeetingServices proposal);
 
-            void JoinMeeting(string meetingTopic, string userName, 
-                bool requesterIsClient, List<(string, DateTime)> dateLoc);
+            void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber);
 
-            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
+            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, int sequenceNumber);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
-            void AddRoom(string location, int capacity, string roomName);
+            void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
             void AddNewServer(string URL);
-            List<string> getSampleClientsFromOtherServers();
-            List<string> getOwnClients();
-            string getRandomClientURL();
+            List<string> getSampleClientsFromOtherServers(int sequenceNumber);
+            List<string> getOwnClients(int sequenceNumber);
+            string getRandomClientURL(int sequenceNumber);
             void PrintStatus();
             List<IMeetingServices> getMeetings();
             string getServerURL();
