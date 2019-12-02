@@ -30,19 +30,18 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewClient(string userName, string userURL, bool requestCommingFromClient);
-            void NewMeetingProposal(IMeetingServices proposal, bool requestCommingFromClient);
+            void NewClient(string userName, string userURL);
+            void NewMeetingProposal(IMeetingServices proposal);
 
-            void JoinMeeting(string meetingTopic, string userName, 
-                bool requesterIsClient, List<(string, DateTime)> dateLoc);
+            void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber);
 
-            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient);
-            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, bool requestCommingFromClient);
-            void AddRoom(string location, int capacity, string roomName);
-            void AddNewServer(string URL, bool requestCommingFromClient = false);
-            List<string> getSampleClientsFromOtherServers();
-            List<string> getOwnClients(bool requestCommingFromClient = false);
-            string getRandomClientURL();
+            List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, int sequenceNumber);
+            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername);
+            void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
+            void AddNewServer(string URL);
+            List<string> getSampleClientsFromOtherServers(int sequenceNumber);
+            List<string> getOwnClients(int sequenceNumber);
+            string getRandomClientURL(int sequenceNumber);
             void PrintStatus();
             List<IMeetingServices> getMeetings();
             string getServerURL();
