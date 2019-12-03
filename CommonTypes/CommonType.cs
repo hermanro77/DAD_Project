@@ -56,6 +56,7 @@ namespace CommonTypes
             int getHighestSeqNr();
             void electNewSequencer(IServerServices failedSequencer);
             void distributeMeetingsToFOtherServers();
+            void failedServerDetected(string failedServerURL);
         }
     }
 }

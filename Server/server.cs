@@ -24,6 +24,7 @@ namespace MeetingCalendar
         private Location location = new Location();
         private int millSecWait;
         private string myServerURL;
+        private IServerServices myself;
         private string serverID;
         private int max_faults;
         private bool frozenMode = false;
@@ -171,6 +172,10 @@ namespace MeetingCalendar
             allServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             allServers.Add(server);
+            if (serverURL == myServerURL)
+            {
+                this.myself = server;
+            }
             
         }
         public void setSequencer(string sequencerURL)
@@ -301,6 +306,16 @@ namespace MeetingCalendar
             }
         }
 
+        public void failedServerDetected(string serverURL)
+        {
+            RemoveFailedServer(failedServerURL: serverURL);
+            notifyServersToDistributeMeetings(); 
+            if (sequencer.getServerURL() == serverURL)
+            {
+                InformSeqFailed();
+            }
+        }
+
         public void distributeMeetingsToFOtherServers()
         {
              foreach (IMeetingServices meeting in meetings){
@@ -331,9 +346,10 @@ namespace MeetingCalendar
                 }
              }
         }
-        public void notifyOtherServersToDistributeMeetings()
+
+        private void notifyServersToDistributeMeetings()
         {
-            foreach(IServerServices server in allServers)
+            foreach(IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
             {
                 try
                 {
@@ -341,7 +357,14 @@ namespace MeetingCalendar
                 } catch (Exception e)
                 {
                     Console.WriteLine("Server" + serverID + "detected a failed server.");
-                    RemoveFailedServer(server);
+                    if (server.Equals(sequencer))
+                    {
+                        InformSeqFailed();
+                    }
+                    else { 
+                        RemoveFailedServer(server);  
+                    }
+                    
                 }
             }
         }
@@ -530,10 +553,9 @@ namespace MeetingCalendar
         public void electNewSequencer(IServerServices failedSequencer)
         {
             if (failedSequencer.Equals(sequencer)) { 
-                 //be sure list of other servers is up to date
                    RemoveFailedServer(failedSequencer);
                    sequencer = allServers[0];
-                if (sequencer.Equals(this))
+                if (sequencer.getServerURL() == this.myServerURL)
                  {
                 prepareToBeSequencer();
                   }
@@ -565,6 +587,7 @@ namespace MeetingCalendar
 
         public int getHighestSeqNr()
         {
+            //TODOO: refer to rigth pendingTasks
             List<int> pendingTasks = new List<int>();
             int maxSeqNr = pendingTasks.Max();
             return maxSeqNr;

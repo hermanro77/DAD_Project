@@ -383,14 +383,15 @@ namespace Client
         {
             if (this.otherServerURLs.Count > 0)
             {
+                string failedServerURL = serverURL;
                 ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
                    otherServerURLs[0]);
                 this.myServer = s;
+                this.serverURL = s.getServerURL();
                 otherServerURLs.RemoveAt(0);
                 s.NewClient(this.userName, this.myURL);
-                //List<int> crashedServerIndexes = myServer.distributeMeetingsToFOtherServers();
-                //myServer.notifyOtherServersToDistributeMeetings(crashedServerIndexes);
+                myServer.failedServerDetected(failedServerURL);
             }
         }
 
