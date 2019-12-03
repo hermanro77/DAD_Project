@@ -23,8 +23,7 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
-        private string myServerURL;
-        private IServerServices myself;
+        private string myServerURL
         private string serverID;
         private int max_faults;
         private bool frozenMode = false;
@@ -171,12 +170,7 @@ namespace MeetingCalendar
         {
             allServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
-            allServers.Add(server);
-            if (serverURL == myServerURL)
-            {
-                this.myself = server;
-            }
-            
+            allServers.Add(server);  
         }
         public void setSequencer(string sequencerURL)
         {
