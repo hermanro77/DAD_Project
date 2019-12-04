@@ -60,32 +60,50 @@ namespace MeetingCalendar
         }
 
 
-        public void PrintStatus()
+        public void PrintStatus(int sequenceNumber = -1)
         {
-            Console.WriteLine("I am " + serverID);
-            Console.WriteLine("URL: " + serverURL);
-            Console.WriteLine("Max faults: " + max_faults);
-
-            string otherServers = "Other servers: ";
-            foreach (string url in otherServerURLs)
+            if (sequenceNumber == -1)
             {
-                otherServers += url + ", ";
+                sequenceNumber = this.sequenceServer.getSeqNum();
             }
-            Console.WriteLine(otherServers);
-
-            string clientsStr = "Clients: ";
-            foreach(KeyValuePair<string, IClientServices> entry in this.clients)
+            if (sequenceNumber <= this.sqNum)
             {
-                clientsStr += entry.Key + ", ";
-            }
-            Console.WriteLine(clients);
-
-            string meetingTopics = "Meetings: ";
-            foreach (IMeetingServices meeting in this.meetings)
+                return;
+            } 
+            else if (sequenceNumber == this.sqNum + 1)
             {
-                otherServers += meeting.getTopic() + ", ";
+                Console.WriteLine("I am " + serverID);
+                Console.WriteLine("URL: " + serverURL);
+                Console.WriteLine("Max faults: " + max_faults);
+
+                string otherServers = "Other servers: ";
+                foreach (string url in otherServerURLs)
+                {
+                    otherServers += url + ", ";
+                }
+                Console.WriteLine(otherServers);
+
+                string clientsStr = "Clients: ";
+                foreach (KeyValuePair<string, IClientServices> entry in this.clients)
+                {
+                    clientsStr += entry.Key + ", ";
+                }
+                Console.WriteLine(clients);
+
+                string meetingTopics = "Meetings: ";
+                foreach (IMeetingServices meeting in this.meetings)
+                {
+                    otherServers += meeting.getTopic() + ", ";
+                }
+                Console.WriteLine(meetingTopics);
+                this.sqNum += 1;
+                this.informServersNewSeq(sequenceNumber);
+            } 
+            else
+            {
+                // SET THIS TASK IN PENDING
             }
-            Console.WriteLine(meetingTopics);
+            
         }
 
         public List<IMeetingServices> getMeetings()
@@ -148,7 +166,7 @@ namespace MeetingCalendar
             otherServers.Add(server);
         }
 
-        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
+        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, int sequenceNumber = -1)
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
@@ -253,8 +271,35 @@ namespace MeetingCalendar
             meetings.Add(proposal);
         }
 
+        public void updateSequence(int sequenceNumber)
+        {
+            if (sequenceNumber == this.sqNum + 1)
+            {
+                this.sqNum += 1;
+            } else if (sequenceNumber > this.sqNum)
+            {
+                // SET IN PENDING LIST
+            }
+        }
+
+        private void informServersNewSeq(int sequenceNumber)
+        {
+            foreach (IServerServices servers in otherServers)
+            {
+                try
+                {
+                    servers.updateSequence(sequenceNumber);
+                }
+                catch
+                {
+                    // CALL FUNCTION THAT REMOVES THE CRASHED SERVER FROM OUR LIST
+                }
+            }
+        }
+
         public void NewClient(string uname, string userURL)
         {
+            int seqNum = this.sequenceServer.getSeqNum();
             lock (clients)
             {
                 if (!clients.ContainsKey(uname))
@@ -272,6 +317,7 @@ namespace MeetingCalendar
                     
                 }
             }
+            this.informServersNewSeq(seqNum);
         }
     
         public List<string> getSampleClientsFromOtherServers(int sequenceNumber = -1)
