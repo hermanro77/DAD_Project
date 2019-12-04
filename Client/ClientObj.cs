@@ -368,7 +368,7 @@ namespace Client
                     string topic = meeting.getTopic();
                     List<(string, DateTime)> locDateOptions = meeting.LocDateOptions;
                     string coordinatorUsername = meeting.CoordinatorUsername;
-                    bool isClosed = meeting.GetIsClosed;
+                    bool isClosed = meeting.isClosed;
                     Dictionary<(string, DateTime), List<string>> participants = meeting.GetParticipants;
 
                     Console.WriteLine("Dates and locations set by the coordinator: ");
