@@ -46,7 +46,6 @@ namespace PuppetMaster
                 IProcessCreationService PCS = (IProcessCreationService)Activator.GetObject(typeof(IProcessCreationService), URLsplit[0] + ":" + URLsplit[1] + ":10000/PCS");
                 
                 PCS.createServer(serverID, URL, max_faults, min_delay, max_delay, otherServerURL);
-
                 AddNewServerToList(URL);
                 serverURLs.Add(URL);
             }
