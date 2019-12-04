@@ -23,7 +23,7 @@ namespace MeetingCalendar
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
-        private string myServerURL
+        private string myServerURL;
         private string serverID;
         private int max_faults;
         private bool frozenMode = false;
@@ -292,7 +292,45 @@ namespace MeetingCalendar
             return ascendingRoomsByCapacity.Last(); 
         }
 
-        public void NewMeetingProposal(IMeetingServices proposal)
+        public void newMeetingProposal(IMeetingServices proposal)
+        {
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+                distributeMeetingToFOtherServer(proposal);   
+            }
+        }
+
+        private void distributeMeetingToFOtherServer(IMeetingServices proposal)
+        {
+            int loopCount = 0;
+            int index = rnd.Next(0, allServers.Count - 1);
+            int i = 0;
+            while (i < max_faults)
+            {
+                IServerServices serverToGetMeeting = allServers[(index + loopCount) % allServers.Count]; //mod to not get index out of bound
+                try
+                {
+                    if (serverToGetMeeting.getServerURL() != this.myServerURL)
+                    {
+                        serverToGetMeeting.receiveMeetingProposal(proposal);
+                        i++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server" + serverID + "detected a failed server.");
+                    RemoveFailedServer(serverToGetMeeting);
+                }
+                loopCount++;
+                if (loopCount == allServers.Count) //have now tried every server
+                {
+                    Console.WriteLine("There are less servers than the max faults. There is a probability that the meeting is not replicated on enough servers.");
+                    break;
+                }
+            }
+        }
+        public void receiveMeetingProposal(IMeetingServices proposal)
         {
             if (!meetings.Contains(proposal))
             {
@@ -310,34 +348,10 @@ namespace MeetingCalendar
             }
         }
 
-        public void distributeMeetingsToFOtherServers()
+        public void distributeAllMeetings()
         {
              foreach (IMeetingServices meeting in meetings){
-                int loopCount = 0;
-                int index = rnd.Next(0, allServers.Count-1);
-                int i = 0;
-                while (i < max_faults)
-                {
-                    IServerServices serverToGetMeeting = allServers[(index +loopCount)  % allServers.Count]; //mod to not get index out of bound
-                    try
-                    {
-                        if (serverToGetMeeting.getServerURL() != this.myServerURL) { 
-                            serverToGetMeeting.NewMeetingProposal(meeting);
-                            i++;
-                        } 
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine("Server" + serverID + "detected a failed server.");
-                        RemoveFailedServer(serverToGetMeeting);
-                    }
-                    loopCount++;
-                    if (loopCount == allServers.Count) //have now tried every server
-                    {
-                        Console.WriteLine("There are less servers than the max faults. There is a probability that the meeting is not replicated on enough servers.");
-                        break;
-                    }
-                }
+                distributeMeetingToFOtherServer(meeting);
              }
         }
 
@@ -347,7 +361,7 @@ namespace MeetingCalendar
             {
                 try
                 {
-                    server.distributeMeetingsToFOtherServers();
+                    server.distributeAllMeetings();
                 } catch (Exception e)
                 {
                     Console.WriteLine("Server" + serverID + "detected a failed server.");
