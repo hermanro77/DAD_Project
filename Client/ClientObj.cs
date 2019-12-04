@@ -201,7 +201,7 @@ namespace Client
             {
                 IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
-                myServer.NewMeetingProposal(meetingProposal);
+                myServer.newMeetingProposal(meetingProposal);
 
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
