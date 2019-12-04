@@ -36,7 +36,7 @@ namespace PuppetMaster
                         {
                             case "Server":
                                 pm.createServer(command[1], command[2], Int32.Parse(command[3]), Int32.Parse(command[4]), Int32.Parse(
-                                    command[5]));
+                                    command[5]), command[6]);
                                 break;
                             case "Client":
                                 pm.createClient(command[1], command[2], command[3], command[4]);

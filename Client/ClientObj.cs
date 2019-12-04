@@ -22,6 +22,7 @@ namespace Client
         private List<IMeetingServices> meetingsClientKnows = new List<IMeetingServices>();
         private string userName;
         private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> otherServers = new List<IServerServices>();
         ServerServices myServer;
         private string serverURL;
         private string myURL;
@@ -81,7 +82,7 @@ namespace Client
 
             if (servers.Count < 1) //No other servers yet
             {
-                throw new Exception("Can not find a new server to connect to"); 
+                //throw new Exception("Can not find a new server to connect to"); 
             }
             if (servers.Count >= maxFaults)
             {
@@ -191,7 +192,7 @@ namespace Client
         private void wait(int delayTime)
         {
             // Not sure if works, temporary solution
-            System.Threading.Thread.Sleep(delayTime);
+            Thread.Sleep(delayTime);
         }
         private void createMeeting(string meetingTopic, int minAttendees,
             List<(string, DateTime)> slots, List<string> invitees)
@@ -200,55 +201,61 @@ namespace Client
             {
                 IMeetingServices meetingProposal = new MeetingServices(this.userName, meetingTopic, minAttendees, slots, invitees);
                 meetingsClientKnows.Add(meetingProposal);
-                myServer.NewMeetingProposal(meetingProposal);
+                myServer.newMeetingProposal(meetingProposal);
 
                 //Dersom motet skal sendes til alle, uten gjesteliste
                 if (invitees == null)
                 {
                     List<string> clientInSameHuB = getClientsInSameHub();
                     List<string> sampleClientsFromOtherServers = getSampleClients();
-                    Console.WriteLine("Clients in same hub:");
-                    foreach (string client in clientInSameHuB)
+                    
+                    if (clientInSameHuB != null)
                     {
-                        Console.WriteLine(client);
+                        Console.WriteLine("Clients in same hub:");
+                        foreach (string client in clientInSameHuB)
+                        {
+                            Console.WriteLine(client);
+                        }
+                        informOtherClients(meetingProposal, clientInSameHuB, false);
                     }
-                    Console.WriteLine("Sample of clients from other servers: ");
-                    foreach (string client in sampleClientsFromOtherServers)
+                    
+                    if (sampleClientsFromOtherServers != null)
                     {
-                        Console.WriteLine(client);
-                    };
-                    informOtherClients(meetingProposal, clientInSameHuB, false);
-                    informOtherClients(meetingProposal, sampleClientsFromOtherServers, true);
-
+                        Console.WriteLine("Sample of clients from other servers: ");
+                        foreach (string client in sampleClientsFromOtherServers)
+                        {
+                            Console.WriteLine(client);
+                        };
+                        
+                        informOtherClients(meetingProposal, sampleClientsFromOtherServers, true);
+                    }
                 }
                 myCreatedMeetings.Add(meetingTopic);
 
             }
-                            
-
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                this.changeServer();
+                changeServer();
+                createMeeting(meetingTopic, minAttendees, slots, invitees);
             }
-            // Create new meeting
-            // USE TRY-CATCH
         }
 
         private void informOtherClients(IMeetingServices meetingProposal, List<string> clientURLs, bool forwardMeeting)
         {
-            List<ClientObj> clients = new List<ClientObj>();
-            foreach (string URL in clientURLs){
-                ClientObj client = (ClientObj)Activator.GetObject(
-                typeof(ClientObj),
-                URL);
-                clients.Add(client);
-            }
-            foreach (ClientObj client in clients)
-            {
-                client.receiveNewMeeting(meetingProposal, forwardMeeting);
-                
-            }
+            if (clientURLs.Count > 0) { 
+                List<ClientObj> clients = new List<ClientObj>();
+                foreach (string URL in clientURLs){
+                    ClientObj client = (ClientObj)Activator.GetObject(
+                    typeof(ClientObj),
+                    URL);
+                    clients.Add(client);
+                }
+                foreach (ClientObj client in clients)
+                {
+                    client.receiveNewMeeting(meetingProposal, forwardMeeting);
+                }
+            }  
         }
 
         public void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting)
@@ -267,7 +274,10 @@ namespace Client
                     {
                         Console.WriteLine("I am client " + this.userName +"    CLient from same server" + client);
                     }
-                    informOtherClients(meetingProposal, clientsFromSameServer, false);
+                    if (clientsFromSameServer != null)
+                    {
+                         informOtherClients(meetingProposal, clientsFromSameServer, false);
+                    }  
                 }
                 catch (Exception e)
                 {
@@ -287,11 +297,6 @@ namespace Client
                     clientsInSameHub.Remove(this.myURL);
 
                 }
-                Console.WriteLine("Clients in same hub:   ");
-                foreach (string client in clientsInSameHub)
-                {
-                    Console.WriteLine(client);
-                }
                 return clientsInSameHub;
             }
             catch(Exception e)
@@ -307,10 +312,10 @@ namespace Client
             try
             {
                 List<string> sample = myServer.getSampleClientsFromOtherServers();
-                Console.WriteLine("Clients from other servers:");
-                foreach (string client in sample)
+                if (sample == null)
                 {
-                    Console.WriteLine(client);
+                    Console.WriteLine("No other clients in other servers.");
+                    return null;
                 }
                 return sample;
             }catch (Exception e)
@@ -330,7 +335,9 @@ namespace Client
             } catch (Exception e) {
                 Console.WriteLine(e);
                 Console.WriteLine("CHANGING SERVER!");
-                this.changeServer();
+
+                changeServer();
+                JoinMeeting(meetingTopic, dateLoc);
             }
         }
 
@@ -346,6 +353,7 @@ namespace Client
                     Console.WriteLine(e);
                     Console.WriteLine("CHANGING SERVER!");
                     changeServer();
+                    closeMeetingProposal(meetingTopic);
                 }
             }
         }
@@ -384,7 +392,10 @@ namespace Client
                 Console.WriteLine("Could not list meetings...!");
                 Console.WriteLine(e);
                 Console.WriteLine("CHANGING SERVER!");
-                this.changeServer();
+                changeServer();
+                ListMeetings();
+                
+               
             }
         }
 
@@ -392,11 +403,15 @@ namespace Client
         {
             if (this.otherServerURLs.Count > 0)
             {
+                string failedServerURL = serverURL;
                 ServerServices s = (ServerServices)Activator.GetObject(
                     typeof(ServerServices),
                    otherServerURLs[0]);
                 this.myServer = s;
+                this.serverURL = s.getServerURL();
+                otherServerURLs.RemoveAt(0);
                 s.NewClient(this.userName, this.myURL);
+                myServer.failedServerDetected(failedServerURL);
             }
         }
 

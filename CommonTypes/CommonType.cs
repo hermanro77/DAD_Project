@@ -31,7 +31,7 @@ namespace CommonTypes
         public interface IServerServices
         {
             void NewClient(string userName, string userURL);
-            void NewMeetingProposal(IMeetingServices proposal);
+            void newMeetingProposal(IMeetingServices proposal);
 
             void JoinMeeting(string meetingTopic, string userName, 
                 bool requesterIsClient, List<(string, DateTime)> dateLoc);
@@ -47,9 +47,17 @@ namespace CommonTypes
             List<IMeetingServices> getMeetings();
             string getServerURL();
             List<string> getOtherServerURLs();
-
-
-
+            string getServerID();
+            void serverKill();
+            void freeze();
+            void unfreeze();
+            void setSequencer(string sequencerURL);
+            int handOutSeqNumber();
+            int getHighestSeqNr();
+            void electNewSequencer(IServerServices failedSequencer);
+            void distributeAllMeetings();
+            void failedServerDetected(string failedServerURL);
+            void receiveMeetingProposal(IMeetingServices meeting);
         }
     }
 }

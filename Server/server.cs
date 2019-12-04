@@ -3,6 +3,7 @@ using Server;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
@@ -13,35 +14,49 @@ using static CommonTypes.CommonType;
 
 namespace MeetingCalendar
 {
-    public class ServerServices : MarshalByRefObject, IServerServices
+    public class ServerServices : MarshalByRefObject, IServerServices, IEquatable<ServerServices>
     {
         private Dictionary<string, IClientServices> clients = new Dictionary<string, IClientServices>();
-        private List<IServerServices> otherServers = new List<IServerServices>();
-        private List<string> otherServerURLs = new List<string>();
+        private List<IServerServices> allServers = new List<IServerServices>();
+        private List<string> allServerURLs = new List<string>();
         private List<string> clientURLs = new List<string>();
         private List<IMeetingServices> meetings = new List<IMeetingServices>();
         private Location location = new Location();
         private int millSecWait;
-        private string serverURL;
+        private string myServerURL;
         private string serverID;
         private int max_faults;
+        private bool frozenMode = false;
+        private bool isSequencer;
+        private int seqNr;
+        private IServerServices sequencer;
 
         TcpChannel channel;
         private Random rnd = new Random();
 
-        // serverURLs is a list of tuples on the form (Server_URL, Serve_ID) for the other servers to communicate with
+      
         public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
             int minWait, int maxWait)
         {
             this.serverID = serverID;
             this.millSecWait = (minWait == 0 && maxWait == 0) ? 0 : rnd.Next(minWait, maxWait);
-            this.serverURL = serverURL;
+            this.myServerURL = serverURL;
             this.max_faults = max_faults;
-            if (otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
+            if (otherServerURL != null && otherServerURL.Contains("tcp")) //if it's not the first server created find all other servers in system
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
+                AddNewServer(myServerURL); //add myself to lists
+                sequencer = allServers[0];
+                isSequencer = false;
             }
-            
+            else
+            {
+                //sets sequencer to be myself
+                AddNewServer(myServerURL); //add myself to lists
+                sequencer = allServers[0];
+                isSequencer = true;
+                seqNr = 0;
+            }
         }
         private void initialize(string serverURL, string serverID, ServerServices serverObj)
         {
@@ -59,16 +74,22 @@ namespace MeetingCalendar
         }
 
 
+        private void delayRandomTime()
+        {
+            Thread.Sleep(millSecWait);
+        }
+
         public void PrintStatus()
         {
             Console.WriteLine("I am " + serverID);
-            Console.WriteLine("URL: " + serverURL);
+            Console.WriteLine("URL: " + myServerURL);
             Console.WriteLine("Max faults: " + max_faults);
 
             string otherServers = "Other servers: ";
-            foreach (string url in otherServerURLs)
+            foreach (string url in allServerURLs)
             {
-                otherServers += url + ", ";
+                if (url != myServerURL) { otherServers += url + ", ";}
+                
             }
             Console.WriteLine(otherServers);
 
@@ -91,18 +112,27 @@ namespace MeetingCalendar
         {
             return this.meetings;
         }
-        public List<IServerServices> Servers 
-        { 
-            get { return otherServers; }  
-        }
+       
         public string getServerURL()
         {
-            return this.serverURL;
+            return this.myServerURL;
+        }
+
+        public string getServerID()
+        {
+            delayRandomTime();
+            return this.serverID;
         }
 
         public List<string> getOtherServerURLs()
         {
-            return this.otherServerURLs;
+            List<string> serversWithoutMe = this.allServerURLs;
+            serversWithoutMe.Remove(myServerURL);
+            return serversWithoutMe;
+        }
+        public List<IServerServices> getServers()
+        {
+            return allServers;
         }
         public int getMaxFaults()
         {
@@ -111,40 +141,53 @@ namespace MeetingCalendar
 
         private void setAllOtherServers(string otherServerURL)
         {
-            if (this.getServerURL() != otherServerURL)
-            {
-                this.AddNewServer(otherServerURL);
-            }
             IServerServices serverFromURL = (IServerServices)Activator.GetObject(typeof(IServerServices),
                 otherServerURL);
-            
+           
             try
             {
                 foreach (string serverURL in serverFromURL.getOtherServerURLs())
                 {
-                    if (serverURL != null && !otherServerURLs.Contains(serverURL))
+                    if (serverURL != null && !allServerURLs.Contains(serverURL))
                     {
-                        if (this.getServerURL() != serverURL)
+                        if (this.myServerURL != serverURL)
                         {
                             this.AddNewServer(serverURL);
                         }
-                        
                         IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices),
                         serverURL);
-                        server.AddNewServer(this.getServerURL()); //adds this new server to the remote server
+                        server.AddNewServer(this.myServerURL); //adds this new server to the remote server
                     }
                 }
             }catch(Exception e)
             {
                 Console.WriteLine(e);
             }
-            serverFromURL.AddNewServer(this.getServerURL());
+             serverFromURL.AddNewServer(this.myServerURL);
         }
+
         public void AddNewServer(string serverURL)
         {
-            otherServerURLs.Add(serverURL);
+            allServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
-            otherServers.Add(server);
+            allServers.Add(server);  
+        }
+        public void setSequencer(string sequencerURL)
+        {
+            if (sequencerURL == myServerURL)
+            {
+                isSequencer = true;
+                sequencer = null;
+                seqNr = 0;
+            }
+            else
+            { 
+             IServerServices sequencerServer = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                           sequencerURL);
+            sequencer = sequencerServer;
+            isSequencer = false;
+            }
+         
         }
 
         public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername)
@@ -165,15 +208,18 @@ namespace MeetingCalendar
             //checks for meeting in other servers if meeting not in this server (multiple servers solution)
             if (!foundMeeting)
             {
-                foreach (IServerServices server in otherServers)
+                foreach (IServerServices server in getServers())
                 {
-                    foreach (MeetingServices meeting in server.getMeetings())
+                    if (server.getServerURL() != this.myServerURL)
                     {
-                        if (meeting.Topic == meetingTopic) //finds the unique meeting
-                        {
-                            foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                            foundMeeting = true;
-                        }
+                        foreach (MeetingServices meeting in server.getMeetings())
+                            {
+                                if (meeting.Topic == meetingTopic) //finds the unique meeting
+                                {
+                                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                                    foundMeeting = true;
+                                }
+                            }
                     }
                 }
             }
@@ -246,9 +292,89 @@ namespace MeetingCalendar
             return ascendingRoomsByCapacity.Last(); 
         }
 
-        public void NewMeetingProposal(IMeetingServices proposal)
+        public void newMeetingProposal(IMeetingServices proposal)
         {
-            meetings.Add(proposal);
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+                distributeMeetingToFOtherServer(proposal);   
+            }
+        }
+
+        private void distributeMeetingToFOtherServer(IMeetingServices proposal)
+        {
+            int loopCount = 0;
+            int index = rnd.Next(0, allServers.Count - 1);
+            int i = 0;
+            while (i < max_faults)
+            {
+                IServerServices serverToGetMeeting = allServers[(index + loopCount) % allServers.Count]; //mod to not get index out of bound
+                try
+                {
+                    if (serverToGetMeeting.getServerURL() != this.myServerURL)
+                    {
+                        serverToGetMeeting.receiveMeetingProposal(proposal);
+                        i++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server" + serverID + "detected a failed server.");
+                    RemoveFailedServer(serverToGetMeeting);
+                }
+                loopCount++;
+                if (loopCount == allServers.Count) //have now tried every server
+                {
+                    Console.WriteLine("There are less servers than the max faults. There is a probability that the meeting is not replicated on enough servers.");
+                    break;
+                }
+            }
+        }
+        public void receiveMeetingProposal(IMeetingServices proposal)
+        {
+            if (!meetings.Contains(proposal))
+            {
+                meetings.Add(proposal);
+            }
+        }
+
+        public void failedServerDetected(string serverURL)
+        {
+            RemoveFailedServer(failedServerURL: serverURL);
+            notifyServersToDistributeMeetings(); 
+            if (sequencer.getServerURL() == serverURL)
+            {
+                InformSeqFailed();
+            }
+        }
+
+        public void distributeAllMeetings()
+        {
+             foreach (IMeetingServices meeting in meetings){
+                distributeMeetingToFOtherServer(meeting);
+             }
+        }
+
+        private void notifyServersToDistributeMeetings()
+        {
+            foreach(IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
+            {
+                try
+                {
+                    server.distributeAllMeetings();
+                } catch (Exception e)
+                {
+                    Console.WriteLine("Server" + serverID + "detected a failed server.");
+                    if (server.Equals(sequencer))
+                    {
+                        InformSeqFailed();
+                    }
+                    else { 
+                        RemoveFailedServer(server);  
+                    }
+                    
+                }
+            }
         }
 
         public void NewClient(string uname, string userURL)
@@ -266,8 +392,7 @@ namespace MeetingCalendar
                     }catch (Exception e)
                     {
                         Console.WriteLine("HELLLOOOOOO" + e);
-                    }
-                    
+                    }  
                 }
             }
         }
@@ -275,19 +400,27 @@ namespace MeetingCalendar
         public List<string> getSampleClientsFromOtherServers()
         {
             List<string> samples = new List<string>();
-         
+            Console.WriteLine("Hi from " + serverID+ ". Giving client");
 
-            foreach (ServerServices server in otherServers)
+            foreach (ServerServices server in allServers)
             {
-                string clientURL = server.getRandomClientURL();
-                Console.WriteLine(clientURL);
-                if (clientURL != null)
+                if (server.getServerURL() != this.myServerURL)
                 {
-                    samples.Add(clientURL);
+                    string clientURL = server.getRandomClientURL();
+                    Console.WriteLine(clientURL);
+                    if (clientURL != null)
+                    {
+                        samples.Add(clientURL);
+                    }
+                    Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL());
                 }
-                Console.WriteLine("[from getSampleCLientsFromOtherServers] Random clientURL:  " + clientURL + "   from server: " + server.getServerURL());             
             }
-            return samples;
+            if (samples.Count > 0)
+            {
+                return samples;
+            }
+           
+            return null;
         }
    
         public string getRandomClientURL()
@@ -330,14 +463,12 @@ namespace MeetingCalendar
             }
             if (requesterIsClient)
             {
-                foreach (IServerServices meetingServer in otherServers)
+                foreach (IServerServices meetingServer in allServers)
                 {
                     meetingServer.JoinMeeting(meetingTopic, userName, false, dateLoc);
                 }
             }
         }
-
-
 
         public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, bool requesterIsClient)
         {
@@ -352,7 +483,7 @@ namespace MeetingCalendar
             }
             if (requesterIsClient)
             {
-                foreach (IServerServices server in otherServers)
+                foreach (IServerServices server in allServers)
                 {
                     foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, false))
                     {
@@ -361,6 +492,147 @@ namespace MeetingCalendar
                 }
             }
             return availableMeetings;
+        }
+
+        public void serverKill()
+        {
+            Process[] runningProcesses = Process.GetProcessesByName("Server");
+            foreach (Process process in runningProcesses)
+            {
+                process.Kill();
+                process.WaitForExit();
+                //foreach (ProcessModule module in process.Modules)
+                //{
+                //    if (module.FileName.Equals("Server.exe"))
+                //    {
+                //        process.Kill();
+                //    }
+                //}
+            }
+
+        }
+
+        public void freeze()
+        {
+            if (this.frozenMode == false)
+            {
+                this.frozenMode = true;
+            }  
+        }
+
+        public void unfreeze()
+        {
+            if (this.frozenMode == true)
+            {
+                this.frozenMode = false;
+            }
+        }
+
+        public override bool Equals(object obj) => Equals(obj as ServerServices);
+        public override int GetHashCode() => (serverID).GetHashCode();
+
+        public bool Eqauls(ServerServices server)
+        {
+            if (server is null) return false;
+            return this.serverID == ((ServerServices)server).getServerID();
+        }
+        public bool Equals(ServerServices other)
+        {
+            if (other is null) return false;
+            return this.serverID == other.getServerID();
+        }
+       
+        public void InformSeqFailed()
+        {
+            foreach (IServerServices server in allServers)
+            {
+                try
+                {
+                    server.electNewSequencer(sequencer);
+                }
+                catch (Exception e)
+                {
+                    RemoveFailedServer(server);
+                    Console.WriteLine("Did not succeed in informing about sequencer failed:  " + e);
+                }  
+            }
+        }
+
+        public void electNewSequencer(IServerServices failedSequencer)
+        {
+            if (failedSequencer.Equals(sequencer)) { 
+                   RemoveFailedServer(failedSequencer);
+                   sequencer = allServers[0];
+                if (sequencer.getServerURL() == this.myServerURL)
+                 {
+                prepareToBeSequencer();
+                  }
+            }  
+        }
+
+        private void prepareToBeSequencer()
+        {
+            isSequencer = true;
+            int maxSeqNr = 0;
+            foreach (IServerServices server in allServers)
+            {
+                try
+                {
+                     int tempMaxSeqNr = server.getHighestSeqNr();
+                    if (tempMaxSeqNr > maxSeqNr)
+                    {
+                        maxSeqNr = tempMaxSeqNr;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server did not respond when getting highestSeqNr. Error message:  "+ e);
+                    RemoveFailedServer(server);
+                }
+            }
+            seqNr = maxSeqNr;
+        }
+
+        public int getHighestSeqNr()
+        {
+            //TODOO: refer to rigth pendingTasks
+            List<int> pendingTasks = new List<int>();
+            int maxSeqNr = pendingTasks.Max();
+            return maxSeqNr;
+        }
+
+        // 0 is invalid seqnr
+        public int handOutSeqNumber()
+        {
+            if (isSequencer)
+            {
+                seqNr++;
+                return seqNr;
+            }
+            else { return 0; }
+        }
+
+        //Should removeFailedServer be highest priority?
+        //possible to use both server and serverURL to remove from both lists
+        private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null) 
+        {
+            if (failedServer != null)
+            {
+                if (allServers.Contains(failedServer))
+                {
+                    int index = allServers.IndexOf(failedServer); 
+                    allServers.RemoveAt(index);
+                    allServerURLs.RemoveAt(index);
+                }
+            }
+            else if (failedServerURL != null)
+            {
+                if (allServerURLs.Contains(failedServerURL)){
+                    int index = allServerURLs.IndexOf(failedServerURL);
+                    allServers.RemoveAt(index);
+                    allServerURLs.RemoveAt(index);
+                }
+            }
         }
 
         static void Main(string[] args)
@@ -374,9 +646,5 @@ namespace MeetingCalendar
             Console.ReadLine();
         }
 
-        public List<string> getClients()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
