@@ -12,4 +12,3 @@ call the client with its interface methods?
 
 
 ### Notes
-Fails with indexOutOfBound when trying to join a second meeting after joined the first
