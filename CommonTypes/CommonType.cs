@@ -32,7 +32,7 @@ namespace CommonTypes
         public interface IServerServices
         {
             void NewClient(string userName, string userURL, int sequenceNumber);
-            void NewMeetingProposal(IMeetingServices proposal, int sequenceNumber);
+            void NewMeetingProposal(IMeetingServices proposal);
 
             void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber);
 
@@ -57,7 +57,8 @@ namespace CommonTypes
             void electNewSequencer(IServerServices failedSequencer);
             void distributeAllMeetings();
             void failedServerDetected(string failedServerURL);
-            void receiveMeetingProposal(IMeetingServices meeting);
+            void receiveMeetingProposal(IMeetingServices meeting, int systemSequenceNr);
+            void addMeetingProposal(IMeetingServices proposal);
             int getSystemSequenceNumber();
             void incrementSqNum();
         }
