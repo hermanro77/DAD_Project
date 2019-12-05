@@ -327,6 +327,18 @@ namespace Client
         {
             try
             {
+                bool meetingInList = false;
+                foreach (MeetingServices meeting in meetingsClientKnows)
+                {
+                    if (meeting.getTopic() == meetingTopic)
+                    {
+                        meetingInList = true;
+                    }
+                }
+                if (!meetingInList)
+                {
+                    Console.WriteLine("ATTENTION!! You tried to join a meeting that you have no knowledge of, but you'll still be able to join it.");
+                }
                 myServer.JoinMeeting(meetingTopic, this.userName, dateLoc);
             } catch (Exception e) {
                 Console.WriteLine(e);
