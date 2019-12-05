@@ -208,7 +208,6 @@ namespace MeetingCalendar
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
-            //One server solution
             foreach (MeetingServices meeting in this.meetings)
             {
 
@@ -216,25 +215,6 @@ namespace MeetingCalendar
                 {
                     foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
                     foundMeeting = true;
-                }
-                
-            }
-            //checks for meeting in other servers if meeting not in this server (multiple servers solution)
-            if (!foundMeeting)
-            {
-                foreach (IServerServices server in getServers())
-                {
-                    if (server.getServerURL() != this.myServerURL)
-                    {
-                        foreach (MeetingServices meeting in server.getMeetings())
-                            {
-                                if (meeting.Topic == meetingTopic) //finds the unique meeting
-                                {
-                                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                                    foundMeeting = true;
-                                }
-                            }
-                    }
                 }
             }
             if (!foundMeeting || !foundBestDateAndLocation)

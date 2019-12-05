@@ -1,0 +1,4 @@
+Server server1 tcp://localhost:50000/server1 1 5000 10000 null
+Server server2 tcp://localhost:50002/server2 1 5000 10000 tcp://localhost:50000/server1
+Client client1 tcp://localhost:50001/client1 tcp://localhost:50000/server1 C:\Users\Ingeborg\Documents\code\DAD_Project\Client\scriptFile.txt
+Status
