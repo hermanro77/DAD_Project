@@ -35,6 +35,7 @@ namespace MeetingCalendar
         public List<(string, DateTime)> Slots { get => locDateOptions; }
         public Boolean Closed { set => closed = true; }
 
+        public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
         public string getTopic()
         {
             return this.Topic;
@@ -47,22 +48,25 @@ namespace MeetingCalendar
             }
             return invitees.Contains(userName);
         }
-        public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
+        
 
         public void AddParticipantToSlot((string, DateTime) slot, string part)
         {
             if (!this.closed)
             {
                 if (participants.Keys.Contains(slot)) {
-                    this.participants[slot].Add(part);
-                } else
+                    if (!participants[slot].Contains(part))
+                    {
+                        this.participants[slot].Add(part);
+                    }
+                }else
                 {
                     this.participants[slot] = new List<string>() { part };
                 }
             }
         }
 
-        public void JoinMeeting(string userName, List<(string, DateTime)> dateLoc)
+        public void addUserToMeeting(string userName, List<(string, DateTime)> dateLoc)
         {
             foreach ((string, DateTime) tuple in dateLoc)
             {

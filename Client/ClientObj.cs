@@ -99,66 +99,75 @@ namespace Client
 
         public void RunScript(string scriptFileName)
         {
-            CultureInfo ci = new CultureInfo("pt-PT");
-            string[] command;
-            string[] lines = System.IO.File.ReadAllLines(scriptFileName);
-            foreach(String line in lines)
+            if (scriptFileName.Contains(".txt"))
             {
-                command = line.Split(' ');
-                Console.WriteLine(command[0]);
-                switch (command[0])
+
+                CultureInfo ci = new CultureInfo("pt-PT");
+                string[] command;
+                string[] lines = System.IO.File.ReadAllLines(scriptFileName);
+                foreach (String line in lines)
                 {
-                    case "list":
-                        this.ListMeetings();
-                        break;
-                    case "create":
-                        string topic = command[1];
-                        int minAttendees = Int32.Parse(command[2]);
-                        int numberOfSlots = Int32.Parse(command[3]);
-                        int numInvitees = Int32.Parse(command[4]);
-                        List<(string, DateTime)> dateLoc = new List<(string, DateTime)>();
-                        List<string> clientInvites = new List<string>();
-                        for (int i = 5; i < 5+numberOfSlots; i++)
-                        {
-                            string[] locDate = command[i].Split(',');
-                            dateLoc.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
-                        }
-                        if (numInvitees != 0)
-                        {
-                            for (int j = 5 + numberOfSlots; j < numInvitees; j++)
+                    command = line.Split(' ');
+                    Console.WriteLine(command[0]);
+                    switch (command[0])
+                    {
+                        case "list":
+                            this.ListMeetings();
+                            break;
+                        case "create":
+                            string topic = command[1];
+                            int minAttendees = Int32.Parse(command[2]);
+                            int numberOfSlots = Int32.Parse(command[3]);
+                            int numInvitees = Int32.Parse(command[4]);
+                            List<(string, DateTime)> dateLoc = new List<(string, DateTime)>();
+                            List<string> clientInvites = new List<string>();
+                            for (int i = 5; i < 5 + numberOfSlots; i++)
                             {
-                                clientInvites.Add(command[j]);
+                                string[] locDate = command[i].Split(',');
+                                dateLoc.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
                             }
-                            
-                        } else
-                        {
-                            clientInvites = null;
-                        }
-                        this.createMeeting(topic, minAttendees,
-                            dateLoc, clientInvites);
-                        break;
-                    case "join":
-                        string meetingTopic = command[1];
-                        int numSlots = Int32.Parse(command[2]);
-                        List<(string, DateTime)> dateLoc2 = new List<(string, DateTime)>();
-                        for (int k = 3; k < 3+numSlots; k++)
-                        {
-                            string[] locDate = command[k].Split(',');
-                            dateLoc2.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
-                        }
-                        this.JoinMeeting(meetingTopic, dateLoc2);
-                        break;
-                    case "close":
-                        this.closeMeetingProposal(command[1]);
-                        break;
-                    case "wait":
-                        this.wait(Int32.Parse(command[1]));
-                        break;
-                    default:
-                        break;
+                            if (numInvitees != 0)
+                            {
+                                for (int j = 5 + numberOfSlots; j < numInvitees; j++)
+                                {
+                                    clientInvites.Add(command[j]);
+                                }
+
+                            }
+                            else
+                            {
+                                clientInvites = null;
+                            }
+                            this.createMeeting(topic, minAttendees,
+                                dateLoc, clientInvites);
+                            break;
+                        case "join":
+                            string meetingTopic = command[1];
+                            int numSlots = Int32.Parse(command[2]);
+                            List<(string, DateTime)> dateLoc2 = new List<(string, DateTime)>();
+                            for (int k = 3; k < 3 + numSlots; k++)
+                            {
+                                string[] locDate = command[k].Split(',');
+                                dateLoc2.Add((locDate[0], DateTime.Parse(locDate[1], ci)));
+                            }
+                            this.JoinMeeting(meetingTopic, dateLoc2);
+                            break;
+                        case "close":
+                            this.closeMeetingProposal(command[1]);
+                            break;
+                        case "wait":
+                            this.wait(Int32.Parse(command[1]));
+                            break;
+                        default:
+                            break;
+                    }
+                    Console.WriteLine("Press any key for next command");
+                    Console.ReadLine();
                 }
-                Console.WriteLine("Press any key for next command");
-                Console.ReadLine();
+            }
+            else
+            {
+                return;
             }
             
         }
@@ -342,7 +351,7 @@ namespace Client
                 myServer.JoinMeeting(meetingTopic, this.userName, dateLoc);
             } catch (Exception e) {
                 Console.WriteLine(e);
-                Console.WriteLine("CHANGING SERVER!");
+                Console.WriteLine("CHANGING SERVER! in Join Meeting");
 
                 changeServer();
                 JoinMeeting(meetingTopic, dateLoc);
@@ -409,10 +418,12 @@ namespace Client
         public void PrintStatus()
         {
             Console.WriteLine("I am client: " + userName + ". My server is " + myServer.getServerURL() + ".");
+            string str = "";
             foreach (string s in this.otherServerURLs)
             {
-                Console.WriteLine("My server urls are " + s);
+                str += s + ", ";
             }
+            Console.WriteLine("My other servers are: " + str);
         }
         static void Main(string[] args)
         {

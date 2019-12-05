@@ -23,7 +23,7 @@ namespace CommonTypes
 
         public interface IMeetingServices
         {
-            void JoinMeeting(string userName, List<(string, DateTime)> dateLoc);
+            void addUserToMeeting(string userName, List<(string, DateTime)> dateLoc);
             string getTopic();
             bool Eqauls(IMeetingServices meeting);
             void printStatus();
@@ -34,9 +34,9 @@ namespace CommonTypes
             void NewClient(string userName, string userURL, int sequenceNumber);
             void NewMeetingProposal(IMeetingServices proposal);
 
-            void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber);
+            void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc);
 
-            List<IMeetingServices> ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows, int sequenceNumber);
+            void ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows);
             Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, int sequenceNumber);
             void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
             void AddNewServer(string URL, int sequenceNumber = -1);
@@ -61,6 +61,9 @@ namespace CommonTypes
             void addMeetingProposal(IMeetingServices proposal);
             int getSystemSequenceNumber();
             void incrementSqNum();
+            void receiveJoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int seqNr);
+            void receiveListMeeting(string userName, string url, List<IMeetingServices> meetingClientKnows, int seqNr);
+            List<IMeetingServices> getMeetingsWhereInvited(string userName, List<IMeetingServices> meetingClientKnows);
         }
     }
 }
