@@ -313,6 +313,29 @@ namespace MeetingCalendar
                 }
 
             }
+
+            //we need to checks for the meeting in other servers if meeting not in this server
+
+            //Happens in the case where the clients server fails
+            //and the client reconnects to a server that don't have the meeting that the client created
+            if (!foundMeeting)
+            {
+                foreach (IServerServices server in getServers())
+                {
+                    if (server.getServerURL() != this.myServerURL)
+                    {
+                        foreach (MeetingServices meeting in server.getMeetings())
+                        {
+                            if (meeting.Topic == meetingTopic) //finds the unique meeting
+                            {
+                                foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                                foundMeeting = true;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (!foundMeeting || !foundBestDateAndLocation)
             {
                 IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), clientURL);
