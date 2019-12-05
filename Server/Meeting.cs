@@ -33,7 +33,10 @@ namespace MeetingCalendar
         public int MinParticipants { get => minParticipants; }
         public List<(string, DateTime)> LocDateOptions { get => locDateOptions; }
         public List<(string, DateTime)> Slots { get => locDateOptions; }
-        public Boolean Closed { set => closed = true; }
+        public bool Closed { 
+            get { return closed; } 
+            set { closed = value; } 
+        }
 
         public Dictionary<(string, DateTime), List<string>> Participants { get => participants; }
         public string getTopic()

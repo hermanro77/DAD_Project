@@ -11,6 +11,7 @@ namespace CommonTypes
             void PrintStatus();
             void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting);
             void myMeetingsFromServer(List<IMeetingServices> availableMeetings);
+            void couldNotCloseMeeting();
         }
 
         public interface IProcessCreationService
@@ -37,7 +38,7 @@ namespace CommonTypes
             void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc);
 
             void ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows);
-            Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, int sequenceNumber);
+            void closeMeetingProposal(string meetingTopic, string clientURL);
             void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
             void AddNewServer(string URL, int sequenceNumber = -1);
             List<string> getSampleClientsFromOtherServers(int sequenceNumber);
@@ -64,6 +65,7 @@ namespace CommonTypes
             void receiveJoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int seqNr);
             void receiveListMeeting(string userName, string url, List<IMeetingServices> meetingClientKnows, int seqNr);
             List<IMeetingServices> getMeetingsWhereInvited(string userName, List<IMeetingServices> meetingClientKnows);
+            void receiveCloseMeeting(string meetingTopic, string clientURL, int seqnr);
         }
     }
 }

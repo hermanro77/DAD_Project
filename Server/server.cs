@@ -133,7 +133,8 @@ namespace MeetingCalendar
             string meetingTopics = "Meetings: ";
             foreach (MeetingServices meeting in this.meetings)
             {
-                meetingTopics += meeting.getTopic() + ", ";
+
+                meetingTopics += meeting.getTopic() + " Closed: " + meeting.Closed + ", ";
                 string participants = "Participants in " + meeting.getTopic() + ": ";
                 foreach (KeyValuePair<(string, DateTime), List<string>> entry in meeting.Participants)
                 {
@@ -238,46 +239,89 @@ namespace MeetingCalendar
          
         }
 
-        public Boolean closeMeetingProposal(string meetingTopic, string coordinatorUsername, int sequenceNumber = -1)
+        public void closeMeetingProposal(string meetingTopic, string clientURL)
+        {
+
+            int sequenceNumber = sequencer.getSystemSequenceNumber();
+
+            //if (frozenMode)
+            //{
+            //    Task task = new Task(() => NewMeetingProposal(proposal));
+            //    pendingTasks.Add((systemSequenceNumber, task));
+            //    return;
+            //}
+
+            distributeCloseMeeting(meetingTopic, clientURL, sequenceNumber);
+
+
+            //Do we need to do this? In the case where the clients server fails
+            //and the client reconnects to a server that don't have the clients meetings??
+
+            //checks for meeting in other servers if meeting not in this server
+            //if (!foundMeeting)
+            //{
+            //    foreach (IServerServices server in getServers())
+            //    {
+            //        if (server.getServerURL() != this.myServerURL)
+            //        {
+            //            foreach (MeetingServices meeting in server.getMeetings())
+            //                {
+            //                    if (meeting.Topic == meetingTopic) //finds the unique meeting
+            //                    {
+            //                        foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+            //                        foundMeeting = true;
+            //                    }
+            //                }
+            //        }
+            //    }
+            //}
+
+        }
+        public void distributeCloseMeeting(string meetingTopic, string clientURL, int sequenceNumber)
+        {
+            foreach (IServerServices server in allServers)
+            {
+                try
+                {
+                    server.receiveCloseMeeting(meetingTopic, clientURL, sequenceNumber);
+                }
+                catch (Exception e)
+                {
+                    //failedServerDetected();
+                }
+            }
+        }
+        public void receiveCloseMeeting(string meetingTopic, string clientURL, int seqnr)
+        {
+            Task<bool> t = new Task<bool>(() => findBestMeetingRoomAndClose(meetingTopic, clientURL));
+            pendingTasks.Add((seqnr, t));
+            executeNext();
+        }
+
+        public bool findBestMeetingRoomAndClose(string meetingTopic, string clientURL)
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
             //One server solution
-            foreach (MeetingServices meeting in this.meetings)
+            foreach (MeetingServices meeting in meetings)
             {
 
                 if (meeting.Topic == meetingTopic)
                 {
-                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
                     foundMeeting = true;
+                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
                 }
-                
-            }
-            //checks for meeting in other servers if meeting not in this server (multiple servers solution)
-            if (!foundMeeting)
-            {
-                foreach (IServerServices server in getServers())
-                {
-                    if (server.getServerURL() != this.myServerURL)
-                    {
-                        foreach (MeetingServices meeting in server.getMeetings())
-                            {
-                                if (meeting.Topic == meetingTopic) //finds the unique meeting
-                                {
-                                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                                    foundMeeting = true;
-                                }
-                            }
-                    }
-                }
+
             }
             if (!foundMeeting || !foundBestDateAndLocation)
             {
+                IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), clientURL);
+                client.couldNotCloseMeeting();
                 return false; //could not find unique meeting or it did not exist a date and location that fitted
             }
             return true; //closed meeting
-
         }
+
 
         private bool findBestDateAndLocation(MeetingServices meeting)
         {

@@ -364,7 +364,7 @@ namespace Client
             {
                 try
                 {
-                   bool mybool = myServer.closeMeetingProposal(meetingTopic, this.userName);
+                   myServer.closeMeetingProposal(meetingTopic, myURL);
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);
@@ -373,6 +373,11 @@ namespace Client
                     closeMeetingProposal(meetingTopic);
                 }
             }
+        }
+
+        public void couldNotCloseMeeting()
+        {
+            Console.WriteLine("Could not find any meetings with this topic name or it was no rooms that fitted");
         }
 
         public void myMeetingsFromServer(List<IMeetingServices> availableMeetings)
