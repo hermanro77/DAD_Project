@@ -30,8 +30,12 @@ namespace MeetingCalendar
         private bool frozenMode = false;
         private bool isSequencer;
         private List<Task> pendingTasks = new List<Task>();
+        
+        // For the sequencer
         private IServerServices sequencer;
-        private int sqNum;
+        private int systemSequenceNumber = 0;
+
+        public int internalSqNum = 0;
 
         TcpChannel channel;
         private Random rnd = new Random();
@@ -57,7 +61,7 @@ namespace MeetingCalendar
                 AddNewServer(myServerURL); //add myself to lists
                 sequencer = allServers[0];
                 isSequencer = true;
-                sqNum = 0;
+                internalSqNum = 0;
             }
         }
         private void initialize(string serverURL, string serverID, ServerServices serverObj)
@@ -101,14 +105,22 @@ namespace MeetingCalendar
             {
                 clientsStr += entry.Key + ", ";
             }
-            Console.WriteLine(clients);
+            Console.WriteLine(clientsStr);
 
             string meetingTopics = "Meetings: ";
             foreach (IMeetingServices meeting in this.meetings)
             {
-                otherServers += meeting.getTopic() + ", ";
+                meetingTopics += meeting.getTopic() + ", ";
             }
             Console.WriteLine(meetingTopics);
+
+            string pending = "Pending tasks: ";
+            foreach (Task t in pendingTasks)
+            {
+                pending += t.Status + ", ";
+            }
+            Console.WriteLine(pending);
+
         }
 
         public List<IMeetingServices> getMeetings()
@@ -180,7 +192,7 @@ namespace MeetingCalendar
             {
                 isSequencer = true;
                 sequencer = null;
-                sqNum = 0;
+                internalSqNum = 0;
             }
             else
             { 
@@ -294,13 +306,53 @@ namespace MeetingCalendar
             return ascendingRoomsByCapacity.Last(); 
         }
 
+        public int getSystemSequenceNumber()
+        {
+            this.systemSequenceNumber++;
+            return systemSequenceNumber;
+        }
+
         public void NewMeetingProposal(IMeetingServices proposal, int sequenceNumber = -1)
         {
-            if (!meetings.Contains(proposal))
+            Console.WriteLine("sequenceNumber: " + sequenceNumber);
+            if (sequenceNumber == -2)
             {
-                meetings.Add(proposal);
-                distributeMeetingToFOtherServer(proposal);   
+                sequenceNumber = this.sequencer.getSystemSequenceNumber();
             }
+
+            if (frozenMode || pendingTasks.Count > 0) 
+            {
+                Task newTask = new Task(() => NewMeetingProposal(proposal, -2));
+                pendingTasks.Add(newTask);
+                return;
+            }
+            
+            if (sequenceNumber == -1)
+            {
+                sequenceNumber = this.sequencer.getSystemSequenceNumber();
+            }
+            if (sequenceNumber == this.internalSqNum)
+            {
+                return;
+            }
+            else
+            {
+                internalSqNum++;
+                distributeMeetingToFOtherServer(proposal);
+            }
+            if (sequenceNumber == this.internalSqNum)
+            {
+                if (!meetings.Contains(proposal))
+                {
+
+                    meetings.Add(proposal);
+                }
+            }
+            else
+            {
+                return;
+            }
+
         }
 
         private void distributeMeetingToFOtherServer(IMeetingServices proposal)
@@ -315,6 +367,7 @@ namespace MeetingCalendar
                 {
                     if (serverToGetMeeting.getServerURL() != this.myServerURL)
                     {
+                        serverToGetMeeting.incrementSqNum();
                         serverToGetMeeting.receiveMeetingProposal(proposal);
                         i++;
                     }
@@ -325,7 +378,7 @@ namespace MeetingCalendar
                     RemoveFailedServer(serverToGetMeeting);
                 }
                 loopCount++;
-                if (loopCount == allServers.Count) //have now tried every server
+                if (loopCount == allServers.Count+1) //have now tried every server
                 {
                     Console.WriteLine("There are less servers than the max faults. There is a probability that the meeting is not replicated on enough servers.");
                     break;
@@ -336,6 +389,7 @@ namespace MeetingCalendar
         {
             if (!meetings.Contains(proposal))
             {
+                Console.WriteLine("Adding meeting in new server");
                 meetings.Add(proposal);
             }
         }
@@ -431,11 +485,11 @@ namespace MeetingCalendar
             {
                 //sequenceNumber = this.sequencer.getSeqNum();
             }
-            if (sequenceNumber == this.sqNum)
+            if (sequenceNumber == this.internalSqNum)
             {
                 return "";
             }
-            else if (sequenceNumber == this.sqNum + 1)
+            else if (sequenceNumber == this.internalSqNum + 1)
             {
                 if (clients.Count == 0)
                 {
@@ -448,7 +502,7 @@ namespace MeetingCalendar
             {
                 if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
                 {
-                    Console.WriteLine("Added task to pending list");
+                    Console.WriteLine("Added task to pending list rondomClientUrl");
                     Task newTask = new Task(() => getRandomClientURL(-2));
                     pendingTasks.Add(newTask);
                 }
@@ -460,27 +514,27 @@ namespace MeetingCalendar
         public List<string> getOwnClients(int sequenceNumber = -1) {
             if (sequenceNumber == -1)
             {
-                //sequenceNumber = this.sequenceServer.getSeqNum();
+                sequenceNumber = this.sequencer.getSystemSequenceNumber();
             }
-            if (sequenceNumber == this.sqNum)
+            if (sequenceNumber == this.internalSqNum)
             {
                 return new List<string>();
             }
-            else if (sequenceNumber == this.sqNum + 1)
+            else if (sequenceNumber == this.internalSqNum + 1)
             {
                 Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
                 foreach (string URL in clientURLs)
                 {
                     Console.WriteLine(URL);
                 }
-                this.sqNum += 1;
+                this.internalSqNum += 1;
                 return clientURLs;
             }
             else
             {
                 if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
                 {
-                    Console.WriteLine("Added task to pending list");
+                    Console.WriteLine("Added task to pending list in getownclients");
                     Task newTask = new Task(() => getOwnClients(-2));
                     pendingTasks.Add(newTask);
                 }
@@ -494,17 +548,17 @@ namespace MeetingCalendar
             {
                 //sequenceNumber = this.sequenceServer.getSeqNum();
             }
-            else if (sequenceNumber == this.sqNum + 1)
+            else if (sequenceNumber == this.internalSqNum + 1)
             {
                 Room newRoom = new Room(roomName, capacity);
                 this.location.addRoom(newRoom, location);
-                this.sqNum += 1;
+                this.internalSqNum += 1;
             }
             else
             {
                 if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
                 {
-                    Console.WriteLine("Added task to pending list");
+                    Console.WriteLine("Added task to pending list in addroom");
                     Task newTask = new Task(() => AddRoom(location, capacity, roomName, -2));
                     pendingTasks.Add(newTask);
                 }
@@ -530,7 +584,7 @@ namespace MeetingCalendar
             {
                 //sequenceNumber = this.sequenceServer.getSeqNum();
             }
-            if (sequenceNumber <= this.sqNum)
+            if (sequenceNumber <= this.internalSqNum)
             {
                 return;
             }
@@ -538,7 +592,7 @@ namespace MeetingCalendar
             {
                 meetingServer.JoinMeeting(meetingTopic, userName, dateLoc, sequenceNumber);
             }
-            if (sequenceNumber == this.sqNum+1)
+            if (sequenceNumber == this.internalSqNum+1)
             {
                 foreach (MeetingServices meeting in meetings)
                 {
@@ -549,13 +603,13 @@ namespace MeetingCalendar
                     }
                 }
                 
-                this.sqNum += 1;
+                this.internalSqNum += 1;
             }
             else
             {
                 if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
                 {
-                    Console.WriteLine("Added task to pending list");
+                    Console.WriteLine("Added task to pending list in joinmeeting");
                     Task newTask = new Task(() => JoinMeeting(meetingTopic, userName, dateLoc, -2));
                     pendingTasks.Add(newTask);
                 }
@@ -563,47 +617,90 @@ namespace MeetingCalendar
             
             
         }
-
-        public List<IMeetingServices> ListMeetings(string userName, List<IMeetingServices> meetingClientKnows, int sequenceNumber = -1)
+        public void incrementSqNum()
         {
+            this.internalSqNum++;
+        }
+
+        public List<IMeetingServices> ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows, int sequenceNumber = -1)
+        {
+
+            
+            if (sequenceNumber == -2)
+            {
+                Thread.Sleep(3000);
+
+                sequenceNumber = this.sequencer.getSystemSequenceNumber();
+            }
+            if (frozenMode) 
+            {
+                Task<List<IMeetingServices>> newTask = new Task<List<IMeetingServices>>(() => ListMeetings(userName, url, meetingClientKnows, -2));
+                pendingTasks.Add(newTask);
+                newTask.Wait();
+                //IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
+                //client.myMeetingsFromServer(new List<IMeetingServices>());
+                return new List<IMeetingServices>();
+            } 
+
             List<IMeetingServices> availableMeetings = new List<IMeetingServices>();
+
             if (sequenceNumber == -1)
             {
-                //sequenceNumber = this.sequenceServer.getSeqNum();
+                sequenceNumber = this.sequencer.getSystemSequenceNumber();
+            }
+            Console.WriteLine("sequenceNumber: " + sequenceNumber);
+            Console.WriteLine("internalSqNum: " + internalSqNum);
+            if (sequenceNumber <= this.internalSqNum)
+            {
+                //IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
+                //client.myMeetingsFromServer(new List<IMeetingServices>());
+                return new List<IMeetingServices>();
             }
 
-            foreach (IServerServices server in allServers)
+            else 
             {
-                foreach (IMeetingServices meets in server.ListMeetings(userName, meetingClientKnows, sequenceNumber))
+                //internalSqNum++;
+                foreach (IServerServices server in allServers)
                 {
-                    availableMeetings.Add(meets);
+                    server.incrementSqNum();
+                    foreach (IMeetingServices meets in server.ListMeetings(userName, url, meetingClientKnows, sequenceNumber))
+                    {
+                        if (!availableMeetings.Contains(meets))
+                        {
+                            availableMeetings.Add(meets);
+                        }
+                    }
                 }
             }
 
-            if (sequenceNumber <= this.sqNum)
-            {
-                return new List<IMeetingServices>();
-            } 
-            else if (sequenceNumber == this.sqNum +1)
+            if (sequenceNumber == this.internalSqNum)
             {
                 IEnumerable<IMeetingServices> intersectMeetings = meetings.Intersect(meetingClientKnows);
                 foreach (MeetingServices meeting in intersectMeetings)
                 {
-                    if (meeting.IsInvited(userName))
+                    if (meeting.IsInvited(userName) && !availableMeetings.Contains(meeting))
                     {
+                        Console.WriteLine("Adding meeting to available meetings");
                         availableMeetings.Add(meeting);
                     }
                 }
-                this.sqNum += 1;
+                //this.sqNum += 1;
+                Console.WriteLine("calling client method here1");
+                IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
+                client.myMeetingsFromServer(availableMeetings);
                 return availableMeetings;
+
             }  else
             {
-                if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
+                if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber > internalSqNum)) // if frozen or close request is made while the server is executing the tasks in his pending list
                 {
-                    Console.WriteLine("Added task to pending list");
-                    Task newTask = new Task(() => ListMeetings(userName, meetingClientKnows, -2));
+                    Console.WriteLine("Added task to pending list, list meeting");
+                    Task<List<IMeetingServices>> newTask = new Task<List<IMeetingServices>>(() => ListMeetings(userName, url, meetingClientKnows, sequenceNumber));
                     pendingTasks.Add(newTask);
                 }
+                
+                //IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
+                //client.myMeetingsFromServer(new List<IMeetingServices>());
                 return new List<IMeetingServices>();
             }
         }
@@ -640,6 +737,7 @@ namespace MeetingCalendar
                 {
                     for (int i = 0; i < tasksRemaining; i++)
                     {
+                        Console.WriteLine("kjører task i pending");
                         Task task = pendingTasks[i];
                         task.Start();
                     }
@@ -712,7 +810,7 @@ namespace MeetingCalendar
                     RemoveFailedServer(server);
                 }
             }
-            sqNum = maxSeqNr;
+            internalSqNum = maxSeqNr;
         }
 
         public int getHighestSeqNr()
@@ -728,8 +826,8 @@ namespace MeetingCalendar
         {
             if (isSequencer)
             {
-                sqNum++;
-                return sqNum;
+                internalSqNum++; // should be system sequencenumber?
+                return internalSqNum;
             }
             else { return 0; }
         }

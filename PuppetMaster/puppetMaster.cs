@@ -205,7 +205,7 @@ namespace PuppetMaster
             IDictionary props = new Hashtable();
             props["port"] = 10001;
             PM.channel = new TcpChannel(props, null, provider);
-            RemotingServices.Marshal(PM, "theLord", typeof(PuppetMaster));
+            RemotingServices.Marshal(PM, "PM", typeof(PuppetMaster));
 
             Console.WriteLine("Write commands or paste path to script file (has to be .txt)" + Environment.NewLine + "Press <enter> to exit");
             string command = Console.ReadLine();

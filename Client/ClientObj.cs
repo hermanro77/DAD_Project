@@ -354,15 +354,20 @@ namespace Client
             }
         }
 
+        public void myMeetingsFromServer(List<IMeetingServices> availableMeetings)
+        {
+            Console.WriteLine("size of available meetings: " + availableMeetings.Count);
+            foreach (MeetingServices meeting in availableMeetings)
+            {
+                Console.WriteLine(meeting.getTopic());
+            }
+        }
         private void ListMeetings()
         {
             try
             {
-                List<IMeetingServices> availableMeetings = myServer.ListMeetings(userName, meetingsClientKnows);
-                foreach (MeetingServices meeting in availableMeetings)
-                {
-                    meeting.printStatus();
-                }
+                myServer.ListMeetings(userName, myURL, meetingsClientKnows);
+
             } catch (Exception e)
             {
                 Console.WriteLine("Could not list meetings...!");
