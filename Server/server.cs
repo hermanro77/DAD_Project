@@ -81,10 +81,10 @@ namespace MeetingCalendar
 
         private void executeNext()
         {
-            Console.WriteLine("Entered executeNextt");
+            Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
+            Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
             for (int i = 0; i < pendingTasks.Count; i++)
             {
-                Console.WriteLine();
                 (int, Task) t = pendingTasks[i];
                 if (t.Item1 == internalSqNum + 1)
                 {
@@ -98,7 +98,7 @@ namespace MeetingCalendar
 
             if (pendingTasks.Count > 0)
             {
-                executeNext();
+                //executeNext();
             }
 
         }
@@ -152,6 +152,7 @@ namespace MeetingCalendar
                 pending += t.Item2.Status + ", ";
             }
             Console.WriteLine(pending);
+            Console.WriteLine("Internal Sequence Number: " + internalSqNum);
 
         }
 
@@ -667,7 +668,11 @@ namespace MeetingCalendar
                         avaliableMeetings.Add(meets);
                     }
                 }
-                server.incrementSqNum();
+                if (server.getServerURL() != myServerURL) //if its not the server that does the task (it will have its internal seqNumber increased in executeNext())
+                {
+                    server.incrementSqNum();
+                }
+                
             }
 
             IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
