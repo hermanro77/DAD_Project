@@ -109,7 +109,7 @@ namespace PuppetMaster
         {
              foreach (IServerServices server in servers)
             {
-                server.AddRoom(location, capacity, roomName, -1);
+                server.AddRoom(location, capacity, roomName);
             }
         }
 

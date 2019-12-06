@@ -32,18 +32,18 @@ namespace CommonTypes
 
         public interface IServerServices
         {
-            void NewClient(string userName, string userURL, int sequenceNumber);
+            void NewClient(string userName, string userURL);
             void NewMeetingProposal(IMeetingServices proposal);
 
             void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc);
 
             void ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows);
             void closeMeetingProposal(string meetingTopic, string clientURL);
-            void AddRoom(string location, int capacity, string roomName, int sequenceNumber);
+            void AddRoom(string location, int capacity, string roomName);
             void AddNewServer(string URL, int sequenceNumber = -1);
             List<string> getSampleClientsFromOtherServers(int sequenceNumber);
-            List<string> getOwnClients(int sequenceNumber);
-            string getRandomClientURL(int sequenceNumber);
+            List<string> getOwnClients();
+            string getRandomClientURL();
             void PrintStatus();
             List<IMeetingServices> getMeetings();
             string getServerURL();

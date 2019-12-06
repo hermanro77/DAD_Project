@@ -30,17 +30,16 @@ namespace MeetingCalendar
         private bool frozenMode = false;
         private bool isSequencer;
         private List<(int, Task)> pendingTasks = new List<(int, Task)>();
-        
-        // For the sequencer
-        private IServerServices sequencer;
-        private int systemSequenceNumber = 0;
-
         public int internalSqNum = 0;
 
         TcpChannel channel;
         private Random rnd = new Random();
 
-      
+        // For the sequencer
+        private IServerServices sequencer;
+        private int systemSequenceNumber = 0;
+
+
         public ServerServices(string otherServerURL, string serverID, string serverURL, int max_faults,
             int minWait, int maxWait)
         {
@@ -64,136 +63,18 @@ namespace MeetingCalendar
                 internalSqNum = 0;
             }
         }
-        private void initialize(string serverURL, string serverID, ServerServices serverObj)
-        {
-            string[] partlyURL = serverURL.Split(':');
-            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
-            Console.WriteLine("Server port when server initialized:" + endURL[0]);
-            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
-            provider.TypeFilterLevel = TypeFilterLevel.Full;
-            IDictionary props = new Hashtable();
-            props["port"] = Int32.Parse(endURL[0]);
-            this.channel = new TcpChannel(props, null, provider);
-            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
-            //ChannelServices.RegisterChannel(channel, false);
-            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
-        }
 
-        private void executeNext()
-        {
-            Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
-            Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
-            for (int i = 0; i < pendingTasks.Count; i++)
-            {
-                (int, Task) t = pendingTasks[i];
-                if (t.Item1 == internalSqNum + 1)
-                {
-                    t.Item2.Start();
-                    pendingTasks.RemoveAt(i);
-                }
-                
-            }
-            
-            incrementSqNum();
 
-            if (pendingTasks.Count > 0)
-            {
-                //executeNext();
-            }
+        
+        // ------- Constructor helper methods -------
 
-        }
-
-        private void delayRandomTime()
-        {
-            Thread.Sleep(millSecWait);
-        }
-
-        public void PrintStatus()
-        {
-
-            Console.WriteLine("I am " + serverID);
-            Console.WriteLine("URL: " + myServerURL);
-            Console.WriteLine("Max faults: " + max_faults);
-
-            string otherServers = "Other servers: ";
-            foreach (string url in allServerURLs)
-            {
-                if (url != myServerURL) { otherServers += url + ", ";}
-                
-            }
-            Console.WriteLine(otherServers);
-
-            string clientsStr = "Clients: ";
-            foreach(KeyValuePair<string, IClientServices> entry in this.clients)
-            {
-                clientsStr += entry.Key + ", ";
-            }
-            Console.WriteLine(clientsStr);
-
-            string meetingTopics = "Meetings: ";
-            foreach (MeetingServices meeting in this.meetings)
-            {
-
-                meetingTopics += meeting.getTopic() + " Closed: " + meeting.Closed + ", ";
-                string participants = "Participants in " + meeting.getTopic() + ": ";
-                foreach (KeyValuePair<(string, DateTime), List<string>> entry in meeting.Participants)
-                {
-                    foreach (string str in entry.Value)
-                    {
-                        participants += str + ", ";
-                    }
-                }
-                Console.WriteLine(participants);
-            }
-            Console.WriteLine(meetingTopics);
-
-            string pending = "Pending tasks: ";
-            foreach ((int, Task) t in pendingTasks)
-            {
-                pending += t.Item2.Status + ", ";
-            }
-            Console.WriteLine(pending);
-            Console.WriteLine("Internal Sequence Number: " + internalSqNum);
-
-        }
-
-        public List<IMeetingServices> getMeetings()
-        {
-            return this.meetings;
-        }
-       
-        public string getServerURL()
-        {
-            return this.myServerURL;
-        }
-
-        public string getServerID()
-        {
-            delayRandomTime();
-            return this.serverID;
-        }
-
-        public List<string> getOtherServerURLs()
-        {
-            List<string> serversWithoutMe = this.allServerURLs;
-            serversWithoutMe.Remove(myServerURL);
-            return serversWithoutMe;
-        }
-        public List<IServerServices> getServers()
-        {
-            return allServers;
-        }
-        public int getMaxFaults()
-        {
-            return this.max_faults;
-        }
 
         private void setAllOtherServers(string otherServerURL)
         {
             AddNewServer(otherServerURL);
             IServerServices serverFromURL = (IServerServices)Activator.GetObject(typeof(IServerServices),
                 otherServerURL);
-           
+
             try
             {
                 foreach (string serverURL in serverFromURL.getOtherServerURLs())
@@ -209,18 +90,20 @@ namespace MeetingCalendar
                         server.AddNewServer(this.myServerURL); //adds this new server to the remote server
                     }
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
-             serverFromURL.AddNewServer(this.myServerURL);
+            serverFromURL.AddNewServer(this.myServerURL);
         }
         public void AddNewServer(string serverURL, int sequenceNumber = -1)
         {
             allServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
-            allServers.Add(server);  
+            allServers.Add(server);
         }
+        
         public void setSequencer(string sequencerURL)
         {
             if (sequencerURL == myServerURL)
@@ -238,6 +121,42 @@ namespace MeetingCalendar
             }
          
         }
+
+
+
+        // ------- Execute Next Task In Pending List ------
+
+
+
+        private void executeNext()
+        {
+            Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
+            Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
+            for (int i = 0; i < pendingTasks.Count; i++)
+            {
+                (int, Task) t = pendingTasks[i];
+                if (t.Item1 == internalSqNum + 1)
+                {
+                    t.Item2.Start();
+                    pendingTasks.RemoveAt(i);
+                }
+
+            }
+
+            incrementSqNum();
+
+            if (pendingTasks.Count > 0)
+            {
+                //executeNext(); Have to test properly.. got infinite loop
+            }
+
+        }
+
+
+
+        // ------- CLOSE MEETING -------
+
+
 
         public void closeMeetingProposal(string meetingTopic, string clientURL)
         {
@@ -383,12 +302,13 @@ namespace MeetingCalendar
             return ascendingRoomsByCapacity.Last(); 
         }
 
-        public int getSystemSequenceNumber()
-        {
 
-            this.systemSequenceNumber++;
-            return systemSequenceNumber;
-        }
+
+
+        // ------- CREATE NEW MEETING -------
+
+
+
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
@@ -404,15 +324,6 @@ namespace MeetingCalendar
             distributeMeetingToFOtherServer(proposal, systemSequenceNumber);
             receiveMeetingProposal(proposal, systemSequenceNumber);
         }
-
-        public void incrementAllSequenceNumbers()
-        {
-            foreach (IServerServices server in allServers)
-            {
-                server.incrementSqNum();
-            }
-        }
-
 
         private void distributeMeetingToFOtherServer(IMeetingServices proposal, int systemSequenceNr) 
         {
@@ -462,166 +373,9 @@ namespace MeetingCalendar
             executeNext();
         }
 
-        public void failedServerDetected(string serverURL)
-        {
-            RemoveFailedServer(failedServerURL: serverURL);
-            notifyServersToDistributeMeetings(); 
-            if (sequencer.getServerURL() == serverURL)
-            {
-                InformSeqFailed();
-            }
-        }
 
-        public void distributeAllMeetings()
-        {
-             foreach (IMeetingServices meeting in meetings){
-                distributeMeetingToFOtherServer(meeting, -3);
-             }
-        }
+        // ------- JOIN MEETING -------
 
-        private void notifyServersToDistributeMeetings()
-        {
-            foreach(IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
-            {
-                try
-                {
-                    server.distributeAllMeetings();
-                } catch (Exception e)
-                {
-                    Console.WriteLine("Server" + serverID + "detected a failed server.");
-                    if (server.Equals(sequencer))
-                    {
-                        InformSeqFailed();
-                    }
-                    else { 
-                        RemoveFailedServer(server);  
-                    }
-                    
-                }
-            }
-        }
-
-        public void NewClient(string uname, string userURL, int sequenceNumber = -1)
-        {
-            lock (clients)
-            {
-                if (!clients.ContainsKey(uname))
-                {
-                    try
-                    {
-                        IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
-                    userURL);
-                        clients.Add(uname, cli);
-                        clientURLs.Add(userURL);
-                    }catch (Exception e)
-                    {
-                        Console.WriteLine("HELLLOOOOOO" + e);
-                    }  
-                }
-            }
-        }
-    
-        public List<string> getSampleClientsFromOtherServers(int sequenceNumber = -1)
-        {
-            List<string> samples = new List<string>();
-
-            foreach (ServerServices server in allServers)
-            {
-                if (server.getServerURL() != this.myServerURL)
-                {
-                    string clientURL = server.getRandomClientURL();
-                    if (clientURL != null)
-                    {
-                        samples.Add(clientURL);
-                    }
-                }
-            }
-            if (samples.Count > 0)
-            {
-                return samples;
-            }
-           
-            return null;
-        }
-   
-        public string getRandomClientURL(int sequenceNumber = -1)
-        {
-            if (sequenceNumber == -1)
-            {
-                //sequenceNumber = this.sequencer.getSeqNum();
-            }
-            if (sequenceNumber == this.internalSqNum)
-            {
-                return "";
-            }
-            else if (sequenceNumber == this.internalSqNum + 1)
-            {
-                if (clients.Count == 0)
-                {
-                    return null;
-                }
-                int randomIndex = this.rnd.Next(0, clients.Count);
-                return clientURLs[randomIndex];
-            }
-            else
-            {
-                if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
-                {
-                    Console.WriteLine("Added task to pending list rondomClientUrl");
-                   //(int, Task) newTask = new Task(() => getRandomClientURL(-2));
-                    //pendingTasks.Add(newTask);
-                }
-                return null;
-            }
-            
-        }
-
-        public List<string> getOwnClients(int sequenceNumber = -1) {
-            
-            //sequenceNumber = this.sequencer.getSystemSequenceNumber();
-            
-            
-            return clientURLs;
-            
-
-            
-        }
-
-        public void AddRoom(string location, int capacity, string roomName, int sequenceNumber = -1)
-        {
-            if (sequenceNumber == -1)
-            {
-                //sequenceNumber = this.sequenceServer.getSeqNum();
-            }
-            else if (sequenceNumber == this.internalSqNum + 1)
-            {
-                Room newRoom = new Room(roomName, capacity);
-                this.location.addRoom(newRoom, location);
-                this.internalSqNum += 1;
-            }
-            else
-            {
-                if (frozenMode || (!frozenMode && pendingTasks.Count > 0 && sequenceNumber == -1)) // if frozen or close request is made while the server is executing the tasks in his pending list
-                {
-                    Console.WriteLine("Added task to pending list in addroom");
-                    //Task newTask = new Task(() => AddRoom(location, capacity, roomName, -2));
-                    //pendingTasks.Add(newTask);
-                }
-            }
-            
-            
-            Console.WriteLine("I am server " + this.serverID + " and my clients are: ");
-            foreach (string URL in clientURLs)
-            {
-                Console.WriteLine(URL);
-            }           
-        }
-        public void AddRoom(string location, int capacity, string roomName)
-        {
-            Room newRoom = new Room(roomName, capacity);
-            this.location.addRoom(newRoom, location);
-        }
-          
 
         public void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc)
         {
@@ -632,6 +386,7 @@ namespace MeetingCalendar
             //    Task newTask = new Task(() => JoinMeeting(meetingTopic, userName, dateLoc));
             //    pendingTasks.Add((sequenceNumber, newTask));
             //}
+            
             distributeJoinMeeting(meetingTopic, userName, dateLoc, sequenceNumber);
         }
 
@@ -645,6 +400,7 @@ namespace MeetingCalendar
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("Failed to contact server " + server.getServerID());
                     //failedServerDetected();
                 }
             }
@@ -667,10 +423,12 @@ namespace MeetingCalendar
             pendingTasks.Add((seqNr, t));
             executeNext();
         }
-        public void incrementSqNum()
-        {
-            this.internalSqNum++;
-        }
+
+        
+
+        // ------- LIST MEETINGS that the client is invited to or has created --------
+
+
 
         public void ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows)
         {
@@ -717,9 +475,16 @@ namespace MeetingCalendar
                 }
                 
             }
-
-            IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
-            client.myMeetingsFromServer(avaliableMeetings);
+            try
+            {
+                IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);
+                client.myMeetingsFromServer(avaliableMeetings);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to contact client at " + url);
+            }
+            
         }
 
         public void receiveListMeeting(string userName, string url, List<IMeetingServices> meetingClientKnows, int seqNr)
@@ -728,6 +493,12 @@ namespace MeetingCalendar
             pendingTasks.Add((seqNr, t));
             executeNext();
         }
+
+
+
+
+        // ------- Kill server -------
+
 
         public void serverKill()
         {
@@ -740,13 +511,17 @@ namespace MeetingCalendar
 
         }
 
+
+        // ------- Freeze server -------
+
+
         public void freeze()
         {
             if (this.frozenMode == false)
             {
                 Console.WriteLine("turning on freeze mode");
                 this.frozenMode = true;
-            }  
+            }
         }
 
         public void unfreeze()
@@ -759,20 +534,232 @@ namespace MeetingCalendar
             }
         }
 
-        public override bool Equals(object obj) => Equals(obj as ServerServices);
-        public override int GetHashCode() => (serverID).GetHashCode();
 
-        public bool Eqauls(ServerServices server)
+
+        // ------- Print Status -------
+
+
+
+        public void PrintStatus()
         {
-            if (server is null) return false;
-            return this.serverID == ((ServerServices)server).getServerID();
+
+            Console.WriteLine("I am " + serverID);
+            Console.WriteLine("URL: " + myServerURL);
+            Console.WriteLine("Max faults: " + max_faults);
+
+            string otherServers = "Other servers: ";
+            foreach (string url in allServerURLs)
+            {
+                if (url != myServerURL) { otherServers += url + ", "; }
+
+            }
+            Console.WriteLine(otherServers);
+
+            string clientsStr = "Clients: ";
+            foreach (KeyValuePair<string, IClientServices> entry in this.clients)
+            {
+                clientsStr += entry.Key + ", ";
+            }
+            Console.WriteLine(clientsStr);
+
+            string meetingTopics = "Meetings: ";
+            foreach (MeetingServices meeting in this.meetings)
+            {
+
+                meetingTopics += meeting.getTopic() + " Closed: " + meeting.Closed + ", ";
+                string participants = "Participants in " + meeting.getTopic() + ": ";
+                foreach (KeyValuePair<(string, DateTime), List<string>> entry in meeting.Participants)
+                {
+                    foreach (string str in entry.Value)
+                    {
+                        participants += str + ", ";
+                    }
+                }
+                Console.WriteLine(participants);
+            }
+            Console.WriteLine(meetingTopics);
+
+            string pending = "Pending tasks: ";
+            foreach ((int, Task) t in pendingTasks)
+            {
+                pending += t.Item2.Status + ", ";
+            }
+            Console.WriteLine(pending);
+            Console.WriteLine("Internal Sequence Number: " + internalSqNum);
+
         }
-        public bool Equals(ServerServices other)
+
+
+
+        // -------- When failed server detected -------
+
+        public void failedServerDetected(string serverURL)
         {
-            if (other is null) return false;
-            return this.serverID == other.getServerID();
+            RemoveFailedServer(failedServerURL: serverURL);
+            notifyServersToDistributeMeetings();
+            if (sequencer.getServerURL() == serverURL)
+            {
+                InformSeqFailed();
+            }
         }
-       
+
+        private void notifyServersToDistributeMeetings()
+        {
+            foreach (IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
+            {
+                try
+                {
+                    server.distributeAllMeetings();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Server" + serverID + "detected a failed server.");
+                    if (server.Equals(sequencer))
+                    {
+                        InformSeqFailed();
+                    }
+                    else
+                    {
+                        RemoveFailedServer(server);
+                    }
+
+                }
+            }
+        }
+
+        public void distributeAllMeetings()
+        {
+            foreach (IMeetingServices meeting in meetings)
+            {
+                distributeMeetingToFOtherServer(meeting, -3);
+            }
+        }
+
+
+
+        // ------- Getters and helper methods not created tasks for -------
+
+
+
+        public List<IMeetingServices> getMeetings()
+        {
+            return this.meetings;
+        }
+
+        public string getServerURL()
+        {
+            return this.myServerURL;
+        }
+
+        public string getServerID()
+        {
+            delayRandomTime();
+            return this.serverID;
+        }
+
+        public List<string> getOtherServerURLs()
+        {
+            List<string> serversWithoutMe = this.allServerURLs;
+            serversWithoutMe.Remove(myServerURL);
+            return serversWithoutMe;
+        }
+        public List<IServerServices> getServers()
+        {
+            return allServers;
+        }
+        public int getMaxFaults()
+        {
+            return this.max_faults;
+        }
+
+
+        public void incrementSqNum()
+        {
+            this.internalSqNum++;
+        }
+
+        public int getSystemSequenceNumber()
+        {
+            this.systemSequenceNumber++;
+            return systemSequenceNumber;
+        }
+
+        private void delayRandomTime()
+        {
+            Thread.Sleep(millSecWait);
+        }
+
+        public void NewClient(string uname, string userURL)
+        {
+            //lock (clients)
+            //{
+            if (!clients.ContainsKey(uname))
+            {
+                try
+                {
+                    IClientServices cli = (IClientServices)Activator.GetObject(typeof(IClientServices),
+                userURL);
+                    clients.Add(uname, cli);
+                    clientURLs.Add(userURL);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+            //}
+        }
+
+        public List<string> getSampleClientsFromOtherServers(int sequenceNumber = -1)
+        {
+            List<string> samples = new List<string>();
+
+            foreach (ServerServices server in allServers)
+            {
+                if (server.getServerURL() != this.myServerURL)
+                {
+                    string clientURL = server.getRandomClientURL();
+                    if (clientURL != null)
+                    {
+                        samples.Add(clientURL);
+                    }
+                }
+            }
+            if (samples.Count > 0)
+            {
+                return samples;
+            }
+
+            return null;
+        }
+
+        public string getRandomClientURL()
+        {
+            if (clients.Count == 0)
+            {
+                return null;
+            }
+            int randomIndex = this.rnd.Next(0, clients.Count);
+            return clientURLs[randomIndex];
+        }
+
+        public List<string> getOwnClients()
+        {
+            return clientURLs;
+        }
+
+        public void AddRoom(string location, int capacity, string roomName)
+        {
+            Room newRoom = new Room(roomName, capacity);
+            this.location.addRoom(newRoom, location);
+        }
+
+
+        
+        
+        // ------- If the sequencer fails ------
+
+
         public void InformSeqFailed()
         {
             foreach (IServerServices server in allServers)
@@ -785,20 +772,21 @@ namespace MeetingCalendar
                 {
                     RemoveFailedServer(server);
                     Console.WriteLine("Did not succeed in informing about sequencer failed:  " + e);
-                }  
+                }
             }
         }
 
         public void electNewSequencer(IServerServices failedSequencer)
         {
-            if (failedSequencer.Equals(sequencer)) { 
-                   RemoveFailedServer(failedSequencer);
-                   sequencer = allServers[0];
+            if (failedSequencer.Equals(sequencer))
+            {
+                RemoveFailedServer(failedSequencer);
+                sequencer = allServers[0];
                 if (sequencer.getServerURL() == this.myServerURL)
-                 {
-                prepareToBeSequencer();
-                  }
-            }  
+                {
+                    prepareToBeSequencer();
+                }
+            }
         }
 
         private void prepareToBeSequencer()
@@ -809,7 +797,7 @@ namespace MeetingCalendar
             {
                 try
                 {
-                     int tempMaxSeqNr = server.getHighestSeqNr();
+                    int tempMaxSeqNr = server.getHighestSeqNr();
                     if (tempMaxSeqNr > maxSeqNr)
                     {
                         maxSeqNr = tempMaxSeqNr;
@@ -817,7 +805,7 @@ namespace MeetingCalendar
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Server did not respond when getting highestSeqNr. Error message:  "+ e);
+                    Console.WriteLine("Server did not respond when getting highestSeqNr. Error message:  " + e);
                     RemoveFailedServer(server);
                 }
             }
@@ -837,7 +825,7 @@ namespace MeetingCalendar
         {
             if (isSequencer)
             {
-                internalSqNum++; // should be system sequencenumber?
+                internalSqNum++;
                 return internalSqNum;
             }
             else { return 0; }
@@ -845,25 +833,62 @@ namespace MeetingCalendar
 
         //Should removeFailedServer be highest priority?
         //possible to use both server and serverURL to remove from both lists
-        private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null) 
+        private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null)
         {
             if (failedServer != null)
             {
                 if (allServers.Contains(failedServer))
                 {
-                    int index = allServers.IndexOf(failedServer); 
+                    int index = allServers.IndexOf(failedServer);
                     allServers.RemoveAt(index);
                     allServerURLs.RemoveAt(index);
                 }
             }
             else if (failedServerURL != null)
             {
-                if (allServerURLs.Contains(failedServerURL)){
+                if (allServerURLs.Contains(failedServerURL))
+                {
                     int index = allServerURLs.IndexOf(failedServerURL);
                     allServers.RemoveAt(index);
                     allServerURLs.RemoveAt(index);
                 }
             }
+        }
+        
+
+        // ------ Compare servers ------
+
+
+        public override bool Equals(object obj) => Equals(obj as ServerServices);
+        public override int GetHashCode() => (serverID).GetHashCode();
+
+        public bool Eqauls(ServerServices server)
+        {
+            if (server is null) return false;
+            return this.serverID == ((ServerServices)server).getServerID();
+        }
+        public bool Equals(ServerServices other)
+        {
+            if (other is null) return false;
+            return this.serverID == other.getServerID();
+        }
+
+
+        // ------- Initialize -------
+
+        private void initialize(string serverURL, string serverID, ServerServices serverObj)
+        {
+            string[] partlyURL = serverURL.Split(':');
+            string[] endURL = partlyURL[partlyURL.Length - 1].Split('/');
+            Console.WriteLine("Server port when server initialized:" + endURL[0]);
+            BinaryServerFormatterSinkProvider provider = new BinaryServerFormatterSinkProvider();
+            provider.TypeFilterLevel = TypeFilterLevel.Full;
+            IDictionary props = new Hashtable();
+            props["port"] = Int32.Parse(endURL[0]);
+            this.channel = new TcpChannel(props, null, provider);
+            // this.channel = new TcpChannel(Int32.Parse(endURL[0]));
+            //ChannelServices.RegisterChannel(channel, false);
+            RemotingServices.Marshal(serverObj, serverID, typeof(ServerServices));
         }
 
         static void Main(string[] args)
