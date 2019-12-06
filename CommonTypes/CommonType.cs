@@ -66,6 +66,7 @@ namespace CommonTypes
             void receiveListMeeting(string userName, string url, List<IMeetingServices> meetingClientKnows, int seqNr);
             List<IMeetingServices> getMeetingsWhereInvited(string userName, List<IMeetingServices> meetingClientKnows);
             void receiveCloseMeeting(string meetingTopic, string clientURL, int seqnr);
+            IServerServices getSequencer();
         }
     }
 }

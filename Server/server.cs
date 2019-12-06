@@ -51,7 +51,8 @@ namespace MeetingCalendar
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
                 AddNewServer(myServerURL); //add myself to lists
-                sequencer = allServers[0];
+                sequencer = ((IServerServices)Activator.GetObject(typeof(IServerServices),
+                otherServerURL)).getSequencer();
                 isSequencer = false;
             }
             else
@@ -62,6 +63,7 @@ namespace MeetingCalendar
                 isSequencer = true;
                 internalSqNum = 0;
             }
+            
         }
 
 
@@ -97,11 +99,17 @@ namespace MeetingCalendar
             }
             serverFromURL.AddNewServer(this.myServerURL);
         }
+
+        public IServerServices getSequencer()
+        {
+            return sequencer;
+        }
         public void AddNewServer(string serverURL, int sequenceNumber = -1)
         {
             allServerURLs.Add(serverURL);
             IServerServices server = (IServerServices)Activator.GetObject(typeof(IServerServices), serverURL);
             allServers.Add(server);
+            allServers.OrderBy(s => s.getServerID());
         }
         
         public void setSequencer(string sequencerURL)
@@ -482,14 +490,16 @@ namespace MeetingCalendar
             {
                 int sequenceNumber = sequencer.getSystemSequenceNumber();
                 Console.WriteLine("listing meetings in server");
+                Console.WriteLine("In method ListMeeting: in try catch, sequence number is: " + sequenceNumber);
                 receiveListMeeting(userName, url, meetingClientKnows, sequenceNumber);
             }
             catch (Exception e)
             {
-                int failIndex = allServers.IndexOf(sequencer);
-                failedServerDetected(allServerURLs[failIndex]);
+
                 Console.WriteLine("A connection to a server failed");
                 Console.WriteLine("Couldn't reach the sequencer, automatically trying again..");
+                int failIndex = allServers.IndexOf(sequencer);
+                failedServerDetected(allServerURLs[failIndex]);
                 ListMeetings(userName, url, meetingClientKnows);
             }
             
@@ -531,14 +541,15 @@ namespace MeetingCalendar
                     }
                     if (server.getServerURL() != myServerURL) //if its not the server that does the task (it will have its internal seqNumber increased in executeNext())
                     {
+                        Console.WriteLine("In method ListMeeting: trying to increment other servers internal sequence number");
                         server.incrementSqNum();
                     }
                 }
                 catch (Exception e)
                 {
+                    Console.WriteLine("A connection to a server failed");
                     int failIndex = allServers.IndexOf(server);
                     failedServerDetected(allServerURLs[failIndex]);
-                    Console.WriteLine("A connection to a server failed");
                 }
                 
                 
@@ -659,7 +670,7 @@ namespace MeetingCalendar
             }
             Console.WriteLine(pending);
             Console.WriteLine("Internal Sequence Number: " + internalSqNum);
-
+            Console.WriteLine("my sequencer is: " + sequencer.getServerID());
         }
 
 
@@ -668,16 +679,26 @@ namespace MeetingCalendar
 
         public void failedServerDetected(string serverURL)
         {
-            RemoveFailedServer(failedServerURL: serverURL);
+            Console.WriteLine("Other servers in system " + getOtherServerURLs());
+            Console.WriteLine("Entered failed server detected with url: " + serverURL);
+            RemoveFailedServer(null, serverURL);
+            Console.WriteLine("removed and going in notify servers to distribute meetings");
             notifyServersToDistributeMeetings();
+            Console.WriteLine("notifyed servers to distribute");
             if (sequencer.getServerURL() == serverURL)
             {
                 InformSeqFailed();
             }
         }
 
-        private void notifyServersToDistributeMeetings()
+        public void notifyServersToDistributeMeetings()
         {
+            Console.WriteLine("HEYEYEYEY");
+            if (allServers.Count <= 1)
+            {
+                Console.WriteLine("HEYEYEYEY2");
+                return;
+            }
             foreach (IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
             {
                 try
@@ -686,15 +707,17 @@ namespace MeetingCalendar
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Server" + serverID + "detected a failed server.");
-                    if (server.Equals(sequencer))
-                    {
-                        InformSeqFailed();
-                    }
-                    else
-                    {
+                    Console.WriteLine("Server " + serverID + " detected a failed server.");
+                    //if (server.Equals(sequencer)) // Does not work to figure out if it was the sequencer that failed after it has failed. This will fal again...
+                    //{
+                    //    Console.WriteLine("sequencer failed");
+                    //    InformSeqFailed();
+                    //}
+                    //else
+                    //{
+                        Console.WriteLine("Trying to remove server ");
                         RemoveFailedServer(server);
-                    }
+                    //}
 
                 }
             }
@@ -928,6 +951,9 @@ namespace MeetingCalendar
         //possible to use both server and serverURL to remove from both lists
         private void RemoveFailedServer(IServerServices failedServer = null, string failedServerURL = null)
         {
+            Console.WriteLine("server url: " + failedServerURL);
+            Console.WriteLine("all servers list contains before " + allServers);
+            Console.WriteLine("all servers list contains before " + allServers[0].getServerID());
             if (failedServer != null)
             {
                 if (allServers.Contains(failedServer))
@@ -939,6 +965,7 @@ namespace MeetingCalendar
             }
             else if (failedServerURL != null)
             {
+                Console.WriteLine("Entered here 2556");
                 if (allServerURLs.Contains(failedServerURL))
                 {
                     int index = allServerURLs.IndexOf(failedServerURL);
@@ -946,6 +973,7 @@ namespace MeetingCalendar
                     allServerURLs.RemoveAt(index);
                 }
             }
+            Console.WriteLine("all servers list contains after " + allServers);
         }
         
 

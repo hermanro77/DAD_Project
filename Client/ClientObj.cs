@@ -32,6 +32,7 @@ namespace Client
         {
             this.userName = userName;
             this.myURL = clientURL;
+            this.serverURL = serverURL;
           
 
             
@@ -241,7 +242,7 @@ namespace Client
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine("CHANGING SERVER!");
                 changeServer();
                 createMeeting(meetingTopic, minAttendees, slots, invitees);
             }
@@ -410,7 +411,7 @@ namespace Client
             } catch (Exception e)
             {
                 Console.WriteLine("Could not list meetings...!");
-                Console.WriteLine(e);
+                //Console.WriteLine(e);
                 Console.WriteLine("CHANGING SERVER!");
                 changeServer();
                 ListMeetings();
@@ -429,7 +430,10 @@ namespace Client
                 this.serverURL = s.getServerURL();
                 otherServerURLs.RemoveAt(0);
                 s.NewClient(this.userName, this.myURL);
+                Console.WriteLine("Changed to " + s.getServerID());
+                Console.WriteLine("#of servers the new server knows " + s.getServers().Count);
                 myServer.failedServerDetected(failedServerURL);
+                Console.WriteLine("finished failed server detected at " + s.getServerID());
             }
         }
 
