@@ -250,32 +250,8 @@ namespace MeetingCalendar
             //    pendingTasks.Add((systemSequenceNumber, task));
             //    return;
             //}
-
+            
             distributeCloseMeeting(meetingTopic, clientURL, sequenceNumber);
-
-
-            //Do we need to do this? In the case where the clients server fails
-            //and the client reconnects to a server that don't have the clients meetings??
-
-            //checks for meeting in other servers if meeting not in this server
-            //if (!foundMeeting)
-            //{
-            //    foreach (IServerServices server in getServers())
-            //    {
-            //        if (server.getServerURL() != this.myServerURL)
-            //        {
-            //            foreach (MeetingServices meeting in server.getMeetings())
-            //                {
-            //                    if (meeting.Topic == meetingTopic) //finds the unique meeting
-            //                    {
-            //                        foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-            //                        foundMeeting = true;
-            //                    }
-            //                }
-            //        }
-            //    }
-            //}
-
         }
         public void distributeCloseMeeting(string meetingTopic, string clientURL, int sequenceNumber)
         {
@@ -283,22 +259,22 @@ namespace MeetingCalendar
             {
                 try
                 {
-                    server.receiveCloseMeeting(meetingTopic, clientURL, sequenceNumber);
-                }
+                    server.receiveCloseMeeting(meetingTopic, clientURL, sequenceNumber);                }
                 catch (Exception e)
                 {
+                    Console.WriteLine("failed to contact server " + server.getServerID());
                     //failedServerDetected();
                 }
             }
         }
         public void receiveCloseMeeting(string meetingTopic, string clientURL, int seqnr)
         {
-            Task<bool> t = new Task<bool>(() => findBestMeetingRoomAndClose(meetingTopic, clientURL));
+            Task t = new Task(() => findBestMeetingRoomAndClose(meetingTopic, clientURL));
             pendingTasks.Add((seqnr, t));
             executeNext();
         }
 
-        public bool findBestMeetingRoomAndClose(string meetingTopic, string clientURL)
+        public void findBestMeetingRoomAndClose(string meetingTopic, string clientURL)
         {
             bool foundMeeting = false;
             bool foundBestDateAndLocation = false;
@@ -313,7 +289,6 @@ namespace MeetingCalendar
                 }
 
             }
-
             //we need to checks for the meeting in other servers if meeting not in this server
 
             //Happens in the case where the clients server fails
@@ -338,11 +313,12 @@ namespace MeetingCalendar
 
             if (!foundMeeting || !foundBestDateAndLocation)
             {
+                Console.WriteLine("Could not close " + meetingTopic);
                 IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), clientURL);
-                client.couldNotCloseMeeting();
-                return false; //could not find unique meeting or it did not exist a date and location that fitted
+                client.couldNotCloseMeeting(meetingTopic);
+                //could not find unique meeting or it did not exist a date and location that fitted
             }
-            return true; //closed meeting
+            //closed meeting
         }
 
 

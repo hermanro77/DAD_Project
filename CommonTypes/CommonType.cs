@@ -11,7 +11,7 @@ namespace CommonTypes
             void PrintStatus();
             void receiveNewMeeting(IMeetingServices meetingProposal, bool forwardMeeting);
             void myMeetingsFromServer(List<IMeetingServices> availableMeetings);
-            void couldNotCloseMeeting();
+            void couldNotCloseMeeting(string meetingTopic);
         }
 
         public interface IProcessCreationService

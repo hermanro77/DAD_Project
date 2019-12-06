@@ -153,6 +153,7 @@ namespace Client
                             this.JoinMeeting(meetingTopic, dateLoc2);
                             break;
                         case "close":
+                            Console.WriteLine("Closing meeting " + command[1]);
                             this.closeMeetingProposal(command[1]);
                             break;
                         case "wait":
@@ -364,7 +365,7 @@ namespace Client
             {
                 try
                 {
-                   myServer.closeMeetingProposal(meetingTopic, myURL);
+                    myServer.closeMeetingProposal(meetingTopic, myURL);
                 } catch (Exception e)
                 {
                     Console.WriteLine(e);
@@ -373,11 +374,22 @@ namespace Client
                     closeMeetingProposal(meetingTopic);
                 }
             }
+            else
+            {
+                couldNotCloseMeeting(meetingTopic);
+            }
         }
-
-        public void couldNotCloseMeeting()
+        private List<string> triedClosed = new List<string>();
+        public void couldNotCloseMeeting(string meetingTopic)
         {
-            Console.WriteLine("Could not find any meetings with this topic name or it was no rooms that fitted");
+            if (!triedClosed.Contains(meetingTopic))
+            {
+                triedClosed.Add(meetingTopic);
+                Console.WriteLine("Could not find any meetings with this topic name '" + meetingTopic + "' or it was no rooms that fitted or it was already closed");
+            }
+            
+            Thread.Sleep(5000);
+            triedClosed.Remove(meetingTopic);
         }
 
         public void myMeetingsFromServer(List<IMeetingServices> availableMeetings)
@@ -422,7 +434,7 @@ namespace Client
 
         public void PrintStatus()
         {
-            Console.WriteLine("I am client: " + userName + ". My server is " + myServer.getServerURL() + ".");
+            Console.WriteLine("I am client: " + userName + ". My server is " + myServer.getServerURL());
             string str = "";
             foreach (string s in this.otherServerURLs)
             {
