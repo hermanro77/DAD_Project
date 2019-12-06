@@ -216,17 +216,27 @@ namespace MeetingCalendar
             {
                 foreach (IServerServices server in getServers())
                 {
-                    if (server.getServerURL() != this.myServerURL)
+                    try
                     {
-                        foreach (MeetingServices meeting in server.getMeetings())
+                        if (server.getServerURL() != this.myServerURL)
                         {
-                            if (meeting.Topic == meetingTopic) //finds the unique meeting
+                            foreach (MeetingServices meeting in server.getMeetings())
                             {
-                                foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
-                                foundMeeting = true;
+                                if (meeting.Topic == meetingTopic) //finds the unique meeting
+                                {
+                                    foundBestDateAndLocation = this.findBestDateAndLocation(meeting);
+                                    foundMeeting = true;
+                                }
                             }
                         }
                     }
+                    catch (Exception e)
+                    {
+                        int failIndex = allServers.IndexOf(server);
+                        failedServerDetected(allServerURLs[failIndex]);
+                        Console.WriteLine("A connection to a server failed");
+                    }
+                   
                 }
             }
 
@@ -312,7 +322,19 @@ namespace MeetingCalendar
 
         public void NewMeetingProposal(IMeetingServices proposal)
         {
-            int systemSequenceNumber = sequencer.getSystemSequenceNumber();
+            try
+            {
+                int systemSequenceNumber = sequencer.getSystemSequenceNumber();
+                distributeMeetingToFOtherServer(proposal, systemSequenceNumber);
+                receiveMeetingProposal(proposal, systemSequenceNumber);
+            }
+            catch (Exception e)
+            {
+                int failIndex = allServers.IndexOf(sequencer);
+                failedServerDetected(allServerURLs[failIndex]);
+                Console.WriteLine("A connection to a server failed");
+                NewMeetingProposal(proposal);
+            }
 
             //if (frozenMode)
             //{
@@ -321,8 +343,7 @@ namespace MeetingCalendar
             //    return;
             //}
 
-            distributeMeetingToFOtherServer(proposal, systemSequenceNumber);
-            receiveMeetingProposal(proposal, systemSequenceNumber);
+            
         }
 
         private void distributeMeetingToFOtherServer(IMeetingServices proposal, int systemSequenceNr) 
@@ -393,15 +414,25 @@ namespace MeetingCalendar
 
         public void JoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc)
         {
-            int sequenceNumber = sequencer.getSystemSequenceNumber();
-
+            try
+            {
+                int sequenceNumber = sequencer.getSystemSequenceNumber();
+                distributeJoinMeeting(meetingTopic, userName, dateLoc, sequenceNumber);
+            }
+            catch (Exception e)
+            {
+                int failIndex = allServers.IndexOf(sequencer);
+                failedServerDetected(allServerURLs[failIndex]);
+                Console.WriteLine("A connection to a server failed");
+                JoinMeeting(meetingTopic, userName, dateLoc);
+            }
+            
             //if (frozenMode) 
             //{
             //    Task newTask = new Task(() => JoinMeeting(meetingTopic, userName, dateLoc));
             //    pendingTasks.Add((sequenceNumber, newTask));
             //}
             
-            distributeJoinMeeting(meetingTopic, userName, dateLoc, sequenceNumber);
         }
 
         public void distributeJoinMeeting(string meetingTopic, string userName, List<(string, DateTime)> dateLoc, int sequenceNumber)
@@ -415,7 +446,8 @@ namespace MeetingCalendar
                 catch (Exception e)
                 {
                     Console.WriteLine("Failed to contact server " + server.getServerID());
-                    //failedServerDetected();
+                    int failIndex = allServers.IndexOf(server);
+                    failedServerDetected(allServerURLs[failIndex]);
                 }
             }
         }
@@ -446,16 +478,27 @@ namespace MeetingCalendar
 
         public void ListMeetings(string userName, string url, List<IMeetingServices> meetingClientKnows)
         {
-            int sequenceNumber = sequencer.getSystemSequenceNumber();
+            try
+            {
+                int sequenceNumber = sequencer.getSystemSequenceNumber();
+                Console.WriteLine("listing meetings in server");
+                receiveListMeeting(userName, url, meetingClientKnows, sequenceNumber);
+            }
+            catch (Exception e)
+            {
+                int failIndex = allServers.IndexOf(sequencer);
+                failedServerDetected(allServerURLs[failIndex]);
+                Console.WriteLine("A connection to a server failed");
+                Console.WriteLine("Couldn't reach the sequencer, automatically trying again..");
+                ListMeetings(userName, url, meetingClientKnows);
+            }
+            
 
             //if (frozenMode) 
             //{
             //    Task newTask = new Task(() => ListMeetings(userName, url, meetingClientKnows));
             //    pendingTasks.Add((sequenceNumber, newTask));
             //}
-
-            Console.WriteLine("listing meetings in server");
-            receiveListMeeting(userName, url, meetingClientKnows, sequenceNumber);
         }
 
         public List<IMeetingServices> getMeetingsWhereInvited(string userName, List<IMeetingServices> meetingClientKnows)
@@ -477,17 +520,27 @@ namespace MeetingCalendar
             List<IMeetingServices> avaliableMeetings = new List<IMeetingServices>();
             foreach (IServerServices server in allServers)
             {
-                foreach (IMeetingServices meets in server.getMeetingsWhereInvited(userName, meetingClientKnows))
+                try
                 {
-                    if (!avaliableMeetings.Contains(meets))
+                    foreach (IMeetingServices meets in server.getMeetingsWhereInvited(userName, meetingClientKnows))
                     {
-                        avaliableMeetings.Add(meets);
+                        if (!avaliableMeetings.Contains(meets))
+                        {
+                            avaliableMeetings.Add(meets);
+                        }
+                    }
+                    if (server.getServerURL() != myServerURL) //if its not the server that does the task (it will have its internal seqNumber increased in executeNext())
+                    {
+                        server.incrementSqNum();
                     }
                 }
-                if (server.getServerURL() != myServerURL) //if its not the server that does the task (it will have its internal seqNumber increased in executeNext())
+                catch (Exception e)
                 {
-                    server.incrementSqNum();
+                    int failIndex = allServers.IndexOf(server);
+                    failedServerDetected(allServerURLs[failIndex]);
+                    Console.WriteLine("A connection to a server failed");
                 }
+                
                 
             }
             Console.WriteLine("Connecting client to send available meetings");
@@ -519,6 +572,10 @@ namespace MeetingCalendar
         public void serverKill()
         {
             Process[] runningProcesses = Process.GetProcessesByName("Server");
+            Console.WriteLine("Please dont kill me!!");
+            Thread.Sleep(5000);
+            Console.WriteLine("Just waitet 5 seconds");
+            Thread.Sleep(2500);
             foreach (Process process in runningProcesses)
             {
                 process.Kill();
@@ -732,14 +789,24 @@ namespace MeetingCalendar
 
             foreach (ServerServices server in allServers)
             {
-                if (server.getServerURL() != this.myServerURL)
+                try
                 {
-                    string clientURL = server.getRandomClientURL();
-                    if (clientURL != null)
+                    if (server.getServerURL() != this.myServerURL)
                     {
-                        samples.Add(clientURL);
+                        string clientURL = server.getRandomClientURL();
+                        if (clientURL != null)
+                        {
+                            samples.Add(clientURL);
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    int failIndex = allServers.IndexOf(server);
+                    failedServerDetected(allServerURLs[failIndex]);
+                    Console.WriteLine("A connection to a server failed");
+                }
+                
             }
             if (samples.Count > 0)
             {
@@ -798,10 +865,20 @@ namespace MeetingCalendar
             {
                 RemoveFailedServer(failedSequencer);
                 sequencer = allServers[0];
-                if (sequencer.getServerURL() == this.myServerURL)
+                try
                 {
-                    prepareToBeSequencer();
+                    if (sequencer.getServerURL() == this.myServerURL)
+                    {
+                        prepareToBeSequencer();
+                    }
                 }
+                catch (Exception e)
+                {
+                    int failIndex = allServers.IndexOf(sequencer);
+                    failedServerDetected(allServerURLs[failIndex]);
+                    Console.WriteLine("A connection to a server failed");
+                }
+                
             }
         }
 

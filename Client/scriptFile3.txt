@@ -1,0 +1,4 @@
+list
+join styremøte 1 Lisboa,2020-01-10
+join julebord 2 Lisboa,2019-04-12 Lisboa,2019-07-12
+list
