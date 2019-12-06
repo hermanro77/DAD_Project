@@ -130,7 +130,7 @@ namespace MeetingCalendar
 
         private void executeNext()
         {
-            //Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
+            Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
             //Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
             for (int i = 0; i < pendingTasks.Count; i++)
             {
@@ -327,12 +327,15 @@ namespace MeetingCalendar
 
         private void distributeMeetingToFOtherServer(IMeetingServices proposal, int systemSequenceNr) 
         {
+            List<int> indexesThatGotMeeting = new List<int>();
             int loopCount = 0;
             int index = rnd.Next(0, allServers.Count - 1);
             int i = 0;
             while (i < max_faults)
             {
-                IServerServices serverToGetMeeting = allServers[(index + loopCount) % allServers.Count]; //mod to not get index out of bound
+                int num = (index + loopCount) % allServers.Count;
+                indexesThatGotMeeting.Add(num);
+                IServerServices serverToGetMeeting = allServers[num]; //mod to not get index out of bound
                 try
                 {
                     if (serverToGetMeeting.getServerURL() != this.myServerURL)
@@ -355,6 +358,17 @@ namespace MeetingCalendar
                 {
                     Console.WriteLine("There are less servers than the max faults. There is a probability that the meeting is not replicated on enough servers.");
                     break;
+                }
+            }
+            for (int j = 0; j < allServers.Count; j++)
+            {
+                if (!indexesThatGotMeeting.Contains(j))
+                {
+                    IServerServices s = allServers[j];
+                    if (s.getServerURL() != myServerURL)
+                    {
+                        s.incrementSqNum();
+                    }
                 }
             }
         }
@@ -440,6 +454,7 @@ namespace MeetingCalendar
             //    pendingTasks.Add((sequenceNumber, newTask));
             //}
 
+            Console.WriteLine("listing meetings in server");
             receiveListMeeting(userName, url, meetingClientKnows, sequenceNumber);
         }
 
@@ -475,6 +490,7 @@ namespace MeetingCalendar
                 }
                 
             }
+            Console.WriteLine("Connecting client to send available meetings");
             try
             {
                 IClientServices client = (IClientServices)Activator.GetObject(typeof(IClientServices), url);

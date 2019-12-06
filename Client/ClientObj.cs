@@ -404,6 +404,7 @@ namespace Client
         {
             try
             {
+                Console.WriteLine("Listing meetings");
                 myServer.ListMeetings(userName, myURL, meetingsClientKnows);
 
             } catch (Exception e)
