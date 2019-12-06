@@ -673,7 +673,6 @@ namespace MeetingCalendar
             }
             Console.WriteLine(pending);
             Console.WriteLine("Internal Sequence Number: " + internalSqNum);
-            Console.WriteLine("my sequencer is: " + sequencer.getServerID());
         }
 
 

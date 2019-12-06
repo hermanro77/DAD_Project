@@ -129,12 +129,10 @@ namespace PuppetMaster
             IServerServices server = (IServerServices)Activator.GetObject(typeof(ServerServices), serverURL);
             try
             {
-                Console.WriteLine("Hello");
                 server.PrintStatus();
             } catch (Exception e)
             {
-                Console.WriteLine("Hello2");
-                Console.WriteLine("No connection to server: " + e);
+                Console.WriteLine("No connection to server ");
             }
             servers.Add(server);
         }
