@@ -1,0 +1,13 @@
+Server server1 tcp://localhost:50000/server1 1 5000 10000 null
+Server server2 tcp://localhost:50002/server2 1 5000 10000 tcp://localhost:50000/server1
+Server server3 tcp://localhost:50003/server3 3 5000 10000 tcp://localhost:50002/server2
+Server server4 tcp://localhost:50004/server4 3 5000 10000 tcp://localhost:50000/server1
+Client client1 tcp://localhost:50001/client1 tcp://localhost:50000/server1 C:\Users\Herman\Documents\Skole\DDA\Project\scriptFile.txt
+Client client2 tcp://localhost:50005/client2 tcp://localhost:50003/server3 nofile
+Status
+Crash server1
+
+
+Server server1 tcp://localhost:50000/server1 1 5000 10000 null
+Server server2 tcp://localhost:50002/server2 1 5000 10000 tcp://localhost:50000/server1
+Client client1 tcp://localhost:50001/client1 tcp://localhost:50000/server1 C:\Users\Herman\Documents\Skole\DDA\Project\scriptFile.txt

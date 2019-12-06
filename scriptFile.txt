@@ -1,0 +1,11 @@
+create myTopic2 1 1 0 Lisboa,2020-01-10
+create myTopic3 1 1 0 Lisboa,2020-01-11
+create myTopic4 1 1 0 Lisboa,2020-01-12
+join myTopic2 1 Lisboa,2020-01-10
+close myTopic2
+close myTopic5
+join myTopic4 1 Lisboa,2020-01-12
+list
+#list
+#close myTopic2 
+#list
