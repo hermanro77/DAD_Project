@@ -51,8 +51,11 @@ namespace MeetingCalendar
             {
                 setAllOtherServers(otherServerURL); //uses otherServerURL to get all servers currently set up and add them to serverURLs. 
                 AddNewServer(myServerURL); //add myself to lists
-                sequencer = ((IServerServices)Activator.GetObject(typeof(IServerServices),
+                string sequencerURL = ((IServerServices)Activator.GetObject(typeof(IServerServices),
                 otherServerURL)).getSequencer();
+                sequencer = (IServerServices)Activator.GetObject(typeof(IServerServices),
+                sequencerURL);
+                //sequencer = allServers[0];
                 isSequencer = false;
             }
             else
@@ -100,9 +103,9 @@ namespace MeetingCalendar
             serverFromURL.AddNewServer(this.myServerURL);
         }
 
-        public IServerServices getSequencer()
+        public string getSequencer()
         {
-            return sequencer;
+            return sequencer.getServerURL();
         }
         public void AddNewServer(string serverURL, int sequenceNumber = -1)
         {
