@@ -382,7 +382,7 @@ namespace MeetingCalendar
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Server" + serverID + "detected a failed server.");
+                    Console.WriteLine("Server" + serverID + "detected a failed server. In distribute method");
                     RemoveFailedServer(serverToGetMeeting);
                 }
                 loopCount++;
@@ -673,32 +673,29 @@ namespace MeetingCalendar
             }
             Console.WriteLine(pending);
             Console.WriteLine("Internal Sequence Number: " + internalSqNum);
+            Console.WriteLine("my sequencer: " + sequencer.getServerID());
         }
 
 
 
-        // -------- When failed server detected -------
+
+        // -------- When failed server is detected ------- does not work need more time for debugging
+
 
         public void failedServerDetected(string serverURL)
         {
-            Console.WriteLine("Other servers in system " + getOtherServerURLs());
-            Console.WriteLine("Entered failed server detected with url: " + serverURL);
             RemoveFailedServer(null, serverURL);
-            Console.WriteLine("removed and going in notify servers to distribute meetings");
-            notifyServersToDistributeMeetings();
-            Console.WriteLine("notifyed servers to distribute");
-            if (sequencer.getServerURL() == serverURL)
-            {
-                InformSeqFailed();
-            }
+            //notifyServersToDistributeMeetings();            Needs testing
+            //if (sequencer.getServerURL() == serverURL)      Needs testing
+            //{
+            //    InformSeqFailed();
+            //}
         }
 
         public void notifyServersToDistributeMeetings()
         {
-            Console.WriteLine("HEYEYEYEY");
             if (allServers.Count <= 1)
             {
-                Console.WriteLine("HEYEYEYEY2");
                 return;
             }
             foreach (IServerServices server in allServers) //her vil også serveren selv bli kalt, usikker på hvordan det vil fungere.
@@ -709,7 +706,7 @@ namespace MeetingCalendar
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Server " + serverID + " detected a failed server.");
+                    Console.WriteLine("Server " + serverID + " detected a failed server");
                     //if (server.Equals(sequencer)) // Does not work to figure out if it was the sequencer that failed after it has failed. This will fal again...
                     //{
                     //    Console.WriteLine("sequencer failed");
@@ -717,8 +714,9 @@ namespace MeetingCalendar
                     //}
                     //else
                     //{
-                        Console.WriteLine("Trying to remove server ");
-                        RemoveFailedServer(server);
+                    Console.WriteLine("Trying to remove server ");
+                    RemoveFailedServer(server);
+                    continue;
                     //}
 
                 }
