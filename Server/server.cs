@@ -130,8 +130,8 @@ namespace MeetingCalendar
 
         private void executeNext()
         {
-            Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
-            Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
+            //Console.WriteLine("Entered executeNextt with internal seqNumber: " + internalSqNum);
+            //Console.WriteLine("Entered executeNextt with System seqNumber: " + systemSequenceNumber);
             for (int i = 0; i < pendingTasks.Count; i++)
             {
                 (int, Task) t = pendingTasks[i];
